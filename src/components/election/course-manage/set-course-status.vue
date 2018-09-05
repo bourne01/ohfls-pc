@@ -9,21 +9,20 @@
 					evaluate:couState===4,
 					finish:couState===5}" 
 			class="btn" >
-          {{couActionName}}</button>
-		  <button
-		  	v-if="couState===4"
-		  	class="btn2 end"
-		  >确认
-		  </button>
+			{{couActionName}}</button>
+			<button
+				v-if="couState===4"
+				class="btn2 end"
+			>确认
+			</button>
      <el-dialog
-      title="评价管理"
-      :visible.sync="elvaluateManage"
-      v-model="activeName"
-      width="45%"      
-    >
-     
+		title="评价管理"
+		:visible.sync="elvaluateManage"
+		v-model="activeName"
+		width="45%"      
+		>     
         <el-tabs v-model="activeName" @tab-click="handleClick"  >
-          <el-tab-pane label="管理员评价教师" name="first"><manager-evaluate-teacher></manager-evaluate-teacher></el-tab-pane>
+			<el-tab-pane label="管理员评价教师" name="first"><manager-evaluate-teacher></manager-evaluate-teacher></el-tab-pane>
         <el-tab-pane label="教师评价学生" name="second"><teacher-evaluate-student></teacher-evaluate-student></el-tab-pane>
         <el-tab-pane label="学生评价课程" name="third"></el-tab-pane>
         </el-tabs>
@@ -81,7 +80,7 @@ import { mapState, mapActions } from 'vuex';
 					this.couActionName = '结束上课';
 					this.couStateName = '课程正在进行中···';
 					this.couState = 3;//结束上课
-				}else if(this.state.couState == 3){//授课已经完成,且教师可评价学生
+				}else if(this.state.couState == 5){//授课已经完成,且教师可评价学生
 					this.couStateName = '正在评价中...';
 					this.couActionName = '评价管理';
 					this.couState = 4;//确认评价，即关闭评价 

@@ -34,6 +34,7 @@
 		}
 		body {
 			line-height: 1;
+			font-family: "Microsoft YaHei";
 		}
 		ol, ul {
 			list-style: none;
