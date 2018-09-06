@@ -38,7 +38,7 @@
 import ManagerEvaluateTeacher from '../course-evaluate/view-evaluation/manager-evaluate-teacher.vue'
 import TeacherEvaluateStudent from '../course-evaluate/view-evaluation/teacher-evaluate-student.vue'
 import { mapState, mapActions } from 'vuex';
-  export default {
+export default {
     props:['state'],
     components:{
       ManagerEvaluateTeacher,
@@ -46,15 +46,15 @@ import { mapState, mapActions } from 'vuex';
       
     },
   data() {
-      return {
-        elvaluateManage: false,
-        activeName:'first',
-		couStateName:'',//课程状态名称
-		couActionName:'',//课程状态处理名称
-		couStateVal:0,//课程状态值
-		couState:''
+      	return {
+			elvaluateManage: false,
+			activeName:'first',
+			couStateName:'',//课程状态名称
+			couActionName:'',//课程状态处理名称
+			couStateVal:0,//课程状态值
+			couState:''
 
-      };
+      	};
 	},
 	computed:{
 		...mapState('election',{
@@ -79,18 +79,33 @@ import { mapState, mapActions } from 'vuex';
 				}else if(this.state.couState == 4){//选课结果已被确认
 					this.couActionName = '结束上课';
 					this.couStateName = '课程正在进行中···';
-					this.couState = 3;//结束上课
+					this.couState = 5;//结束上课
 				}else if(this.state.couState == 5){//授课已经完成,且教师可评价学生
 					this.couStateName = '正在评价中...';
 					this.couActionName = '评价管理';
 					this.couState = 4;//确认评价，即关闭评价 
+					//关闭师生互评，evalState  ; //2普通(默认)、3确认(关闭评价)
 				}else if(this.state.couState == 5 && this.state.thrOpState == 2){//授课已经完成
 					this.couStateName = '课程已完成，已记录学分';
 					this.couActionName = '查看评价';
 					this.couState = 5;//确认评价，即关闭评价 
+					//
 				}
 			}
 		},
+		/**
+		 * @function 获取师生互评状态
+		 */
+		getInterEvaluateState(){
+
+		},
+		/**
+		 * @function 异步转同步
+		 */
+		toSync:async function(){
+			await this.getInterEvaluateState();
+			await this.showStateName();
+		}
     },
     mounted(){
 		this.showStateName();
