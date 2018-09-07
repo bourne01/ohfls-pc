@@ -38,8 +38,10 @@
 import ManagerEvaluateTeacher from '../course-evaluate/view-evaluation/manager-evaluate-teacher.vue'
 import TeacherEvaluateStudent from '../course-evaluate/view-evaluation/teacher-evaluate-student.vue'
 import { mapState, mapActions } from 'vuex';
+import { getEvaluations,getElectResults,
+		changeStuCouState,changeCouState,changeEvalState} from '../../../api/election.js'
 export default {
-    props:['state'],
+    props:['current-course'],
     components:{
       ManagerEvaluateTeacher,
       TeacherEvaluateStudent
@@ -52,8 +54,9 @@ export default {
 			couStateName:'',//课程状态名称
 			couActionName:'',//课程状态处理名称
 			couStateVal:0,//课程状态值
-			couState:''
-
+			couState:'',
+			evaluateState:'',//师生互评状态（互评状态 2普通(默认)、3确认）
+			studentCourseIds:[],
       	};
 	},
 	computed:{
@@ -65,46 +68,156 @@ export default {
         handleClick(tab, event) {
 			console.log(tab, event);
 		},
-		/**@function 根据状态值，显示不同的状态值 */
-		showStateName(){
-			if(this.state.audit == 1){//课程未审核
+		/**@function 根据状态值，显示不同的状态值 
+		 * @param {师生互评状态} evalState 
+		 */
+		showStateName(evalState){
+			if(this.curentCourse.audit == 1){//课程未审核
 				this.couActionName = '审核';
 				this.couStateName = '课程状态未审核';
 				this.couState = 1;//审核
+				this.setCourseState(this.curentCourse.selCouId,undefined,2)
 			}else{
-				if(this.state.couState == 2){//开启选课(默认)
+				if(this.curentCourse.couState == 2){//开启选课(默认)
 					this.couActionName = '确认选课';
 					this.couStateName = "已审核，学生选课中···";
 					this.couState = 2;//确认选课
-				}else if(this.state.couState == 4){//选课结果已被确认
+					this.setCourseState(this.curentCourse.selCouId,this.couState,undefined)
+				}else if(this.curentCourse.couState == 4){//选课结果已被确认
 					this.couActionName = '结束上课';
 					this.couStateName = '课程正在进行中···';
 					this.couState = 5;//结束上课
-				}else if(this.state.couState == 5){//授课已经完成,且教师可评价学生
+					this.setCourseState(this.curentCourse.selCouId,this.couState,undefined)
+					this.getStudentCourseIds(this.curentCourse.selCouId)
+				}else if(this.curentCourse.couState == 5){//授课已经完成,且教师可评价学生
 					this.couStateName = '正在评价中...';
 					this.couActionName = '评价管理';
 					this.couState = 4;//确认评价，即关闭评价 
 					//关闭师生互评，evalState  ; //2普通(默认)、3确认(关闭评价)
-				}else if(this.state.couState == 5 && this.state.thrOpState == 2){//授课已经完成
+					this.setEvaluationDone(this.studentCourseIds);
+				}else if(this.curentCourse.couState == 5 && evalState == 3){//授课已经完成
 					this.couStateName = '课程已完成，已记录学分';
 					this.couActionName = '查看评价';
-					this.couState = 5;//确认评价，即关闭评价 
 					//
 				}
 			}
 		},
 		/**
-		 * @function 获取师生互评状态
+		 * @function 根据课程Id,设置课程状态
+		 * @param {课程Id} courseId 
+		 * @param {课程开课状态 2开启(可选)(默认) 3关闭(不可选) 4确认 5完成} courseState
+		 * @param {课程审核状态 1未审核(默认) 2已审核} auditState
 		 */
-		getInterEvaluateState(){
+		setCourseState(courseId,courseState,auditState){
+			let params = {
+				selCouIds:courseId,
+				couState:courseState,
+				audit:auditState};
+			changeCouState(params)
+				.then(res => {
+					if(res.data.success){
+						this.$message({
+							type:'success',
+							message:res.data.message
+						})
+					}else{
+						this.$message({
+							type:'error',
+							message:res.data.message
+						})
+					}
+				})
+		},
 
+		/**
+		 * @function 根据被选课Id，获取学生选课Id
+		 * @param {学生所学课程的Id} selCouId
+		 */
+		getStudentCourseIds(selCouId){
+			let url = "p/stuCou!query.action";
+			let params = {selCouId};
+			return getElectResults(url,params)
+				.then(res => {
+					let objData = res.data;
+					let studentCourseIds = [];//学生选课Id
+					if(objData.success){
+						for(let item of objData.dataList){
+							studentCourseIds.push(item.stuCouId);
+						}
+					}else{
+						console.log(objData.message);
+					}
+					//this.studentCourseIds = studentCourseIds;
+					if(studentCourseIds.length != 0){
+						this.setEvaluatable(studentCourseIds.toString());
+					}
+				})
+		},
+
+		/**
+		 * @function 根据学生选课Id,更改教师评价与学生评价状态为可评价，即开启师生评价,
+		 * 或确认选课状态
+		 * @param {学生选课Id} studentCourseIds
+		 * @param {选课状态} electState
+		 * @param {教师评价状态控制} teacherEvaluateState
+		 * @param {学生评价状态控制} studentEvaluateState
+		 */
+		setEvaluatable(studentCourseIds,electState,teacherEvaluateState,studentEvaluateState){
+			let params = {
+						stuCouId:studentCourseIds,
+						state:electState,
+						evalStateThr:teacherEvaluateState,
+						evalStateStu:studentEvaluateState};
+			return  changeStuCouState(params)
+				.then(res => {
+					if(res.data.success){
+							this.$message({
+							type:'success',
+							message:res.data.message
+						})
+					}else{
+						this.$message({
+							type:'error',
+							message:res.data.message
+						})
+					}
+					
+				})
+		},
+		/**@function 更改状态，确认师生互评已经完成 
+		 * @param {学生选课Id} studentCourseIds
+		 * @param {师生互评状态 2普通(默认)、3确认}
+		*/
+		setEvaluationDone(studentCourseIds){
+			let params = {
+					stuCouIds:studentCourseIds,
+					evalState:3}
+			setEvaluationDone(params)
+		},
+
+		/**
+		 * @function 获取师生互评状态
+		 * @param {学生所学课程的Id} selCouId
+		 */
+		getInterEvaluateState(selCouId){
+			let url = 'p/stuCouEval!query2.action';
+			let param = {selCouId};
+			return getEvaluations(url,param)
+				.then(res => {
+					let objData = res.data;
+					if(objData.success){
+						this.evaluateState = objData.evalState; 
+					}else{
+						console.log(objData.message);
+					}
+				})
 		},
 		/**
 		 * @function 异步转同步
 		 */
 		toSync:async function(){
 			await this.getInterEvaluateState();
-			await this.showStateName();
+			await this.showStateName(this.evaluateState);
 		}
     },
     mounted(){

@@ -68,14 +68,14 @@
         :filter-method="filterstate"
         filter-placement="bottom-end">
         <template slot-scope="scope">     
-          <set-course-status  :state="scope.row" ></set-course-status> <!--修改课程状态的列-->
+          <set-course-status  :curren-course="scope.row" ></set-course-status> <!--修改课程状态的列-->
         </template>
       </el-table-column>
       <el-table-column
       label="操作"
 	  min-width="170">
       <template slot-scope="scope"> 
-        <actions :current-row="scope.row"></actions>
+        <actions :current-course="scope.row"></actions>
       </template>      
       </el-table-column>                        <!--操作列-->
     </el-table>
