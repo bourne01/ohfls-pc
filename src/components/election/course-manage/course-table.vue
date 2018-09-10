@@ -68,7 +68,7 @@
         :filter-method="filterstate"
         filter-placement="bottom-end">
         <template slot-scope="scope">     
-          <set-course-status  :curren-course="scope.row" ></set-course-status> <!--修改课程状态的列-->
+          <course-state  :current-course="scope.row" ></course-state> <!--修改课程状态的列-->
         </template>
       </el-table-column>
       <el-table-column
@@ -96,7 +96,7 @@
 </template>
 
 <script>
-import setCourseStatus from './set-course-status.vue'
+import CourseState from './course-state.vue'
 import addToCourse from './students-manage/add-to-course.vue'
 import MyDropdown from './dropdown'
 import Actions from './actions'
@@ -104,7 +104,7 @@ import {mapActions,mapState} from 'vuex'
   export default {
     components:{
       addToCourse,
-      setCourseStatus,
+      CourseState,
       MyDropdown,
       Actions,
     },
