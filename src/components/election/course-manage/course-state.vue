@@ -269,8 +269,8 @@ export default {
 		 * @param {当前课程Id} currentCourseid
 		 */
 		toSync:async function(currentCourseid){
-			await this.getInterEvaluateState(currentCourseid);
-			await this.showStateName(this.evaluateState);
+			//await this.getInterEvaluateState(currentCourseid);
+			//await this.showStateName(this.evaluateState);
 		}
 	},
 	created(){

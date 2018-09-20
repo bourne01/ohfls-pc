@@ -25,3 +25,7 @@ export const GET_TEACHINGSITE = 'GET_TEACHINGSITE'
 export const GET_GRADE = 'GET_GRADE'
 //获取班级学生信息
 export const GET_CLASSSTUDENT ='GET_CLASSSTUDENT'
+//获取选课计划列表
+export const GET_PLANLIST ='GET_PLANLIST'
+//设置要查看选课计划详情标志
+export const SET_CHECK_PLAN_DETAIL = 'SET_CHECK_PLAN_DETAIL'

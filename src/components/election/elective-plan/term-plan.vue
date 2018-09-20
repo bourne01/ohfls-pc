@@ -2,16 +2,16 @@
     <div class="term-plans">
         <div class="term-plan" 
             :class="{active:idx===actIdx}"
-            @click="actIdx=idx"
-            v-for="(term,idx) in termList" :key="idx" v-if="idx<planNums">
+            @click="goCheckPlan(idx,plan.planNO)"
+            v-for="(plan,idx) in plans" :key="idx" v-if="idx<planNums">
             <div>
-                <span class="term-txt">{{term.termName|getYear}}</span>
+                <span class="term-txt">{{plan.termNm|getYear}}</span>
                 <span 
                     class="term-border"
                     :class="{activeTerm:idx===actIdx}"
                 >学年</span>
             </div>
-            <div class="term">第{{term.termName|getTermValue}}学期</div>
+            <div class="term">第{{plan.termNm|getTermValue}}学期</div>
             <img 
                 class="plan-done" 
                 :src="require('../../../assets/completed.png')" alt=""
@@ -23,14 +23,20 @@
 
 <script>
 import { getTerms } from '../../../api/public.js'
+import { getElectPlans } from '../../../api/election.js'
 import { xhrErrHandler } from '../../../utils/util.js'
 export default {
     props:['idx'],
     data(){
         return{
             actIdx:0,//默认最新学期激活
-            termList:[],//学期列表
+           // plans:[],//选课计划列表
             planNums:0,//屏幕展示学科计划数量，由分辨率而定
+        }
+    },
+    computed:{
+        plans:function(){
+            return this.$store.state.election.planList;
         }
     },
     filters:{
@@ -49,25 +55,37 @@ export default {
          * @return {返回中文数字}
          */
         getTermValue(str){
-            let cnNums = ['一','二','三','四','五','六','七','八','九','十'];            
-            console.log(parseInt(str.slice(-3,-2))-1)
+            if(str.includes('一') || str.includes('二')){
+                return str.substring(str.indexOf("一"),str.indexOf("一")+1);
+            }
+            let cnNums = ['一','二','三','四','五','六','七','八','九','十'];    
             return cnNums[parseInt(str.slice(-3,-2))-1]
+        }
+    },
+    methods:{
+        /**
+         * @function 监听点击某计划事件，然后跳转该计划详情页面
+         * @param {计划显示序号} index
+         * @param {计划编号} planId
+         */
+        goCheckPlan(index,planId){
+            this.actIdx = index;
+            this.$router.push({name:'AddElectivePlan',query:{planId}})
         }
     },
     mounted(){
         /**获取学期列表 */
-        getTerms()
+        this.$store.dispatch('election/getElectPlanList',{})
+        //getElectPlans()
             .then(res => {
-                console.log(res)
-                if(res.data.success){
-                    this.termList = res.data.dataList.reverse();
-                    console.log(this.termList);
+                if(res.success){
+                    //this.plans = res.dataList.reverse();
                 }else{
                     this.$message(res.message)
                 }
             })
             .catch(err => {
-                xhrErrHandler(err,this.$message);
+                xhrErrHandler(err,this.$router,this.$message);
             })
         /**根据屏幕分辨率判定界面显示及格选课计划 */
         let screenWidth = window.screen.width;        

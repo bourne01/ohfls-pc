@@ -31,7 +31,7 @@ const baseURL = proxyURL+'/p'
 /**
  * @function 
  */
-export const selector = (params) => {
+export const getSelector = (params) => {
   return http(`${baseURL}/baseWebDat`,{params})
 
 }

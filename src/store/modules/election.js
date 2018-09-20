@@ -1,17 +1,19 @@
 import{
         getCourseList,getStuElectState,
         getElectDuties,getElectResults,
-        getStuAndCouRelations,        
+        getStuAndCouRelations,getElectPlans       
     } from '../../api/election'
 import * as type from './mutations-type'
 
 
 const state = {
     courseTable:[], //获取学部列表
+    planList:[],//选课计划列表
     studentList:[], //获取学生选课名单
     taskList:[],//学生选课任务列表
     stuCourseStatus:[],//获取学生选课状态
     electResultList:[],//选课结果
+    willCheckPlan:false,//是否要查看选课计划详情（false(默认不查看),true（查看））
 }
 
 
@@ -34,10 +36,30 @@ const mutations = {
     },
     [type.GET_ELECT_RESULT](state,params){
         state.electResList = params; 
+    },
+    [type.GET_PLANLIST](state,params){
+        state.planList = params; 
+    },
+    [type.SET_CHECK_PLAN_DETAIL](state,params){
+        state.willCheckPlan = params; 
     }
 }
 
 const actions = {
+    //获取选课计划列表
+    getElectPlanList({commit},params){
+        return new Promise((resolve,reject) => {
+            getElectPlans(params)
+                .then(res => {
+                    commit('GET_PLANLIST',res.data.dataList);
+                    resolve(res.data);
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject(err)
+                })
+        })
+    },
     //获取课程管理信息
     getCourseTable({commit},params){
         return new Promise((resolve,reject) => {

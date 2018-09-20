@@ -3,7 +3,7 @@
         <section>
             <header>课程消息</header>                  <!--新增课程页面-->
             <div>
-                <label for=""><span>*</span>课程封面</label>
+                <label for=""><!-- <span>*</span> -->课程封面</label>
                 <el-upload
                     action="https://jsonplaceholder.typicode.com/posts/"                    
                     class="upload-course-cover"
@@ -18,22 +18,28 @@
             <div class="flex">
                 <div class="course-name">
                     <label for=""><span>*</span>课程名称</label>
-                    <el-input placeholder="输入名称" v-model="course.name"></el-input>
+                    <el-input placeholder="必填" v-model="course.name"></el-input>
                 </div>
                 <div class="course-id">
                     <label for=""><span>*</span>课程编号</label>
-                    <el-input placeholder="输入编号" v-model="course.id"></el-input>
+                    <el-input placeholder="必填" v-model="course.id"></el-input>
                 </div>
             </div>
             <div class="flex">
                 <div class="teaching-site">
-                    <label for="">教学场地</label>
-                    <el-select v-model="course.site"></el-select>
+                    <label for=""><span>*</span>选课计划</label>
+                    <el-select v-model="course.plan"></el-select>
                 </div>
                 <div class="course-type">
                     <label for="">课程类别</label>
                     <el-select v-model="course.type"></el-select>
                 </div>            
+            </div>  
+            <div class="flex">
+                <div class="teaching-site">
+                    <label for="">教学场地</label>
+                    <el-select v-model="course.site"></el-select>
+                </div>          
             </div>  
             <div class="course-intro">
                 <label for="">课程简介</label>
@@ -86,7 +92,7 @@
                 </div>
             </div>
             <div>
-                <label for=""><span>*</span>设置年级</label>
+                <label for=""><!-- <span>*</span> -->设置年级</label>
                 <div class="add-grade">
                     <el-button @click="onClickBtn(2)">添加年级</el-button>
                     <div>
@@ -101,7 +107,7 @@
                 </div>
             </div>
             <div>
-                <label for=""><span>*</span>设置班级</label>
+                <label for=""><!-- <span>*</span> -->设置班级</label>
                 <div class="add-class">
                     <el-button @click="onClickBtn(3)">添加班级</el-button>
                     <div>
@@ -118,51 +124,51 @@
             <div class="flex limit">
                 <div>
                     <label for=""><span>*</span>人数上限</label>
-                    <el-input v-model="course.limit"></el-input>
+                    <el-input v-model="course.limit" placeholder="必填"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>各班限额</label>
+                    <label for=""><!-- <span>*</span> -->各班限额</label>
                     <el-input v-model="course.limitPerClass"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>男生上限</label>
+                    <label for=""><!-- <span>*</span> -->男生上限</label>
                     <el-input v-model="course.manLimit"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>女生上限</label>
+                    <label for=""><!-- <span>*</span> -->女生上限</label>
                     <el-input v-model="course.girlLimit"></el-input>
                 </div>                
             </div>
             <div class="flex ratio">
                 <div>
-                    <label for=""><span>*</span>特优比率(%)</label>
+                    <label for=""><!-- <span>*</span> -->特优比率(%)</label>
                     <el-input v-model="course.ultimateRatio"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>优秀比率(%)</label>
+                    <label for=""><!-- <span>*</span> -->优秀比率(%)</label>
                     <el-input v-model="course.excellentRatio"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>良好比率(%)</label>
+                    <label for=""><!-- <span>*</span> -->良好比率(%)</label>
                     <el-input v-model="course.goodRatio"></el-input>
                 </div>
             </div>
             <div class="flex credit">
                 <div>
-                    <label for=""><span>*</span>特优学分</label>
+                    <label for=""><!-- <span>*</span> -->特优学分</label>
                     <el-input v-model="course.ultimateCredit"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>优秀学分</label>
+                    <label for=""><!-- <span>*</span> -->优秀学分</label>
                     <el-input v-model="course.excellentCredit"></el-input>
                 </div>
                 <div>
-                    <label for=""><span>*</span>良好学分</label>
+                    <label for=""><!-- <span>*</span> -->良好学分</label>
                     <el-input v-model="course.goodCredit"></el-input>
                 </div>
             </div>
             <div class="lowest-credit">
-                <label for=""><span>*</span>选本课最低学分</label>
+                <label for=""><!-- <span>*</span> -->选本课最低学分</label>
                 <el-input v-model="course.lowestCredit"></el-input>
             </div>
             <div class="save">
@@ -181,16 +187,29 @@ export default {
     },
     data() {
       return {
-        course:{},
+        course:{//课程对象，一下内容为默认值
+            ultimateRatio:30,
+            excellentRatio:60,
+            goodRatio:10,
+            ultimateCredit:3,
+            excellentCredit:2,
+            goodCredit:1,
+        },
         isPop:false,//是否打开弹窗
-        type:-1,//弹窗类型，type的值：1添加学期、2添加年级、3添加班级
+        type:-1,//弹窗类型，type的值：1添加学期、2添加年级、3添加班级，-1默认
         tags: [
                 { name: '标签一', type: '' },
                 { name: '标签二', type: 'success' },
                 { name: '标签三', type: 'info' },
                 { name: '标签四', type: 'warning' },
                 { name: '标签五', type: 'danger' }],
-        imageUrl:''
+        imageUrl:'',
+        termTags:[],//授课学期名称
+        classTags:[],//授课班级名称
+        gradeTags:[],//授课年级名称
+        termList:[],//系统中的学期列表
+        gradeList:[],//系统中的年级列表
+        classList:[],//系统中的班级列表
       };
       
     },
@@ -206,11 +225,56 @@ export default {
         /**@function 添加对话框关闭事件 */
         onDialogClose(){
             this.isPop = false;
+            this.type = -1;//初始化
             console.log('hi...')
         },
         /**@function 提交课程信息 */
         submit(){
+           this.checkInputValue();
+        },
+        /**@function 检查输入项是否合法 */
+        checkInputValue(){
+            let isValid = true;//默认所有输入项都有效，false则表示无效
+             /**@function 检查必填项，是否已经都有内容，如果为空，则提示用户输入相应内容 */
+            if(!course.name){
+                this.$message({
+                    type:'warning',
+                    message:'课程名称不能为空！'
+                });
+                isValid = false;
+            }else if(!course.id){
+                this.$message({
+                    type:'warning',
+                    message:'课程编号不能为空！'
+                });
+                isValid = false;
+            }else if(!course.plan){
+                this.$message({
+                    type:'warning',
+                    message:'选课计划不能为空！'
+                });
+                isValid = false;
+            }else if(!course.limit){
+                this.$message({
+                    type:'warning',
+                    message:'学生总人数限制不能为空！'
+                });
+                isValid = false;
+            }
+            /**@function 特优、优秀和良好三者比例之和不能超过100% */
+            if((course.ultimateRatio/100 + course.excellentRatio/100 + course.goodRatio/100) > 1){
+                this.$message({
+                    type:'warning',
+                    message:'特优、优秀和良好三者比例之和不能超过100%'
+                })
+                isValid = false;
+            }
 
+            if(!isValid)//检查结果无效
+                return true;
+            else{//检查结果有效
+                return false;
+            }
         },
       handleRemove(file, fileList) {
         console.log(file, fileList);

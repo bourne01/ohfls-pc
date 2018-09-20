@@ -7,13 +7,7 @@ const baseURL = proxyURL+'/p'
  * @param 见接口说明
  */
 export const login = (params) => {
-    return http(`${baseURL}/login.action`,{params})
-        .then(res =>{
-            console.log(err)
-        })
-        .catch(err => {
-            console.log(err)
-        })
+    return http(`${baseURL}/login.action`,{params})        
 }
 /**
  * @function 注销当前用户

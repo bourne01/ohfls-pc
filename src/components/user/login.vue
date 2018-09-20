@@ -53,12 +53,22 @@ export default {
         */
     },
     mounted(){
-         this.$store.dispatch('user/login',{acc:'admin',psw:'admin'})
+         this.$store.dispatch('user/login',{acc:'admin',psw:'windowsdos88'})
             .then(res => {
-                console.log('......')
-                console.log(res);
-                
-                this.$router.push('/home/election');
+                if(res.data.success)
+                    this.$router.push('/home/election');
+                else{
+                    switch(res.data.type){
+                        case 1:
+                            this.$message('密码错误');
+                            break;
+                        case 2:
+                            this.$message('发生异常，您已登录');
+                            break;
+                        default:
+                            this.$message('发生未知错误，请重试！');
+                    }
+                }
             })
             .catch(err => {
                 console.log(err)

@@ -14,8 +14,15 @@
             </div>
             <div>
                 <div class="teaching-site">
-                    <label for="">教学场地</label>
-                    <el-select  v-model="plan.site"></el-select>
+                    <label for=""><span>*</span>学期</label>
+                    <el-select  v-model="plan.termId">
+                        <el-option
+                            v-for="item in termList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
                 </div>                        
             </div>  
             <div class="plan-intro">
@@ -25,12 +32,14 @@
             <div>
                 <label for="">报名时间<span class="end-time"></span></label>                
                 <el-date-picker
-                v-model="plan.time"
-                type="datetimerange"
-                align="right"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                :default-time="['12:00:00', '08:00:00']">
+                    v-model="plan.time"
+                    type="datetimerange"
+                    align="right"
+                    start-placeholder="开始日期"
+                    end-placeholder="结束日期"
+                    @change="onDateTimeChange"
+                    value-format="yyyy-MM-dd HH-mm-ss"
+                    :default-time="['12:00:00', '08:00:00']">
                 </el-date-picker>
             </div>   
             <div class="flex ratio">
@@ -79,28 +88,125 @@
 
 
 <script>
-  export default {
-    components:{
-    },
+import { addElectPlan } from '../../../api/election.js' 
+import { getSelector } from '../../../api/public.js'
+export default {
     data() {
         return {
-            plan:{},
+            plan:{},//计划对象
+            termList:[],//学期列表
         };
     },
     methods: {
         /**@function 提交选课计划*/
         submit(){
-            console.log(this.plan);
-            this.$router.push('/home/election')
+            //计划名称、编号与学期，三者缺一则无法提交
+            if(!this.plan.id || !this.plan.name || !this.plan.termId){
+                this.$message("计划名称、计划编号与学期三者不能为空");
+               return;
+            }
+            let planStart = undefined;//计划开启时间
+            let planEnd = undefined;//计划结束时间
+            if(typeof this.plan.time === 'object'){
+                planStart = this.plan.time[0];
+                planEnd = this.plan.time[1];
+            }
+            
+            if((this.plan.ultimateRatio/100 + this.plan.excellentRatio + this.plan.goodRatio) > 1){                
+                this.$message('特优、优秀和良好三者比率之和超过100%');
+                return;
+            }                
+
+            let params = {
+                termId:this.plan.termId,
+                planNO:this.plan.id,
+                planName:this.plan.name,
+                planMeno:this.plan.Memo,
+                planStart,
+                planEnd,
+                credit1:this.plan.ultimateCredit,
+                credit2:this.plan.excellentCredit,
+                credit3:this.plan.goodCredit,
+                lvRate1:this.plan.ultimateRatio/100,
+                lvRate2:this.plan.excellentRatio/100,
+                lvRate3:this.plan.goodRatio/100,
+                couEditState:this.plan.isOpen?2:4,
+            }
+            addElectPlan(params)
+                .then(res => {
+                    console.log(res)
+                    if(res.data.success){
+                        this.$message(res.data.message);
+                        this.$router.push('/home/election')
+                    }else{
+                        switch(res.data.type){//错误类型
+                            case 1:
+                                break;
+                            case 2:
+                                this.$message('发生异常，请联系管理员');
+                                break;
+                            default:{
+                                this.$message('发生未知错误，请联系管理员');
+                            }
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+            //this.$router.push('/home/election')
         },
-      handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-      }
+        /**@function 监听日期选择器事件，一旦发生日期改变，则处理事件 */
+        onDateTimeChange(){
+            console.log(this.plan.time);
+        },       
+    },
+    mounted(){
+        let planId = this.$route.query.planId
+        console.log(planId);
+        if(planId){//如果编号非空，则是来自点击选课计划而来，不是来自点击新增计划按钮而来
+            let planList = this.$store.state.election.planList;
+            for(let plan of planList){
+                if(plan.planNO === planId){
+                    let time = [];
+                    if(plan.planStart){
+                        time[0] = new Date(plan.planStart);
+                    }
+                    if(plan.planEnd){
+                        time[1] = new Date(plan.planEnd);
+                    }
+                    this.plan = {
+                        termId:plan.termId,
+                        id:plan.planNO,
+                        name:plan.planName,
+                        memo:plan.planMeno,
+                        time,
+                        ultimateCredit:plan.credit1,
+                        excellentCredit:plan.credit2,
+                        goodCredit:plan.credit3,
+                        ultimateRatio:plan.lvRate1*100,
+                        excellentRatio:plan.lvRate2*100,
+                        goodRatio:plan.lvRate3*100,
+                        isOpen:plan.couEditState==2?true:false
+                    }
+                }
+            }
+        };
+        let params = {
+            f:'uxTerm',
+            /* state:2, */
+            simple:0
+        }
+        getSelector(params)
+            .then(res => {
+                console.log(res)
+                this.termList = res.data.dataList;
+            })
+            .catch(err => {
+
+            })
     }
-  }
+}
 </script>
 
 <style>    
