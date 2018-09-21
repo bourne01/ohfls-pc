@@ -74,8 +74,8 @@ export default {
         }
     },
     mounted(){
-        /**获取学期列表 */
-        this.$store.dispatch('election/getElectPlanList',{})
+        /**获取选课计划列表 */
+        this.$store.dispatch('election/getElectPlanList',{orderFd:'@planName'})
         //getElectPlans()
             .then(res => {
                 if(res.success){

@@ -28,17 +28,38 @@
             <div class="flex">
                 <div class="teaching-site">
                     <label for=""><span>*</span>选课计划</label>
-                    <el-select v-model="course.plan"></el-select>
+                    <el-select v-model="course.plan">
+                        <el-option
+                            v-for="item in planList"
+                            :key="item.planNO"
+                            :label="item.planName"
+                            :value="item.planNO">
+                        </el-option>
+                    </el-select>
                 </div>
                 <div class="course-type">
                     <label for="">课程类别</label>
-                    <el-select v-model="course.type"></el-select>
+                    <el-select v-model="course.type">
+                        <el-option
+                            v-for="item in courseCategoryList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
                 </div>            
             </div>  
             <div class="flex">
                 <div class="teaching-site">
                     <label for="">教学场地</label>
-                    <el-select v-model="course.site"></el-select>
+                    <el-select v-model="course.site">
+                        <el-option
+                            v-for="item in siteList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                        </el-option>
+                    </el-select>
                 </div>          
             </div>  
             <div class="course-intro">
@@ -47,30 +68,26 @@
             </div>
             <div class="flex add-teacher-wrapper">
                 <div class="add-teacher">
-                    <label for=""><span>*</span>添加教师</label>
-                    <el-upload
-                        action="https://jsonplaceholder.typicode.com/posts/"
-                        list-type="picture-card"
-                        :on-preview="handlePictureCardPreview"
-                        :on-remove="handleRemove">
-                        <i class="el-icon-plus"></i>
-                        </el-upload>
-                    <!-- <el-dialog :visible.sync="dialogVisible">
-                        <img width="100%" :src="dialogImageUrl" alt="">
-                    </el-dialog> -->
+                    <label for=""><span>*</span>添加教师</label>                    
+                    <div class="teacher-wrapper">
+                        <div class="teacher-avatar" v-for="(item,idx) in teacherTags" :key="idx">
+                            <img :src="require('../../../assets/teacher-avatar.jpg')" alt=""
+                            @click="onCloseTag(item,4)">
+                            <span>{{item.name}}</span>
+                        </div>
+                        <el-button icon="el-icon-plus" circle @click="onClickBtn(4)"></el-button>                       
+                    </div>
                 </div>
                 <div class="add-org">
                     <label for=""><span>*</span>添加机构</label>
-                    <el-upload
-                        action="https://jsonplaceholder.typicode.com/posts/"
-                        list-type="picture-card"
-                        :on-preview="handlePictureCardPreview"
-                        :on-remove="handleRemove">
-                        <i class="el-icon-plus"></i>
-                        </el-upload>
-                    <!-- <el-dialog :visible.sync="dialogVisible">
-                        <img width="100%" :src="dialogImageUrl" alt="">
-                    </el-dialog> -->
+                    <div class="org-wrapper">
+                        <div class="org-avatar" v-for="idx in 0" :key="idx">
+                            <img :src="require('../../../assets/teacher-avatar.jpg')" alt="">
+                            <span>张老师</span>
+                        </div>
+                        <el-button icon="el-icon-plus"></el-button>
+                    </div>
+                    
                 </div>
             </div>            
         </section>           
@@ -82,10 +99,11 @@
                     <el-button @click="onClickBtn(1)">添加学期</el-button>
                     <div>
                         <el-tag
-                            v-for="tag in tags"
+                            v-for="tag in termTags"
                             :key="tag.name"
                             closable
-                            :type="tag.type">
+                            :type="tag.type"
+                            @close="onCloseTag(tag,1)">
                             {{tag.name}}
                         </el-tag>
                     </div>
@@ -97,10 +115,11 @@
                     <el-button @click="onClickBtn(2)">添加年级</el-button>
                     <div>
                         <el-tag
-                            v-for="tag in tags"
+                            v-for="tag in gradeTags"
                             :key="tag.name"
                             closable
-                            :type="tag.type">
+                            :type="tag.type"
+                            @close="onCloseTag(tag,2)">
                             {{tag.name}}
                         </el-tag>
                     </div>
@@ -112,10 +131,11 @@
                     <el-button @click="onClickBtn(3)">添加班级</el-button>
                     <div>
                         <el-tag
-                            v-for="tag in tags"
+                            v-for="tag in classTags"
                             :key="tag.name"
                             closable
-                            :type="tag.type">
+                            :type="tag.type"
+                            @close="onCloseTag(tag,3)">
                             {{tag.name}}
                         </el-tag>
                     </div>
@@ -172,15 +192,23 @@
                 <el-input v-model="course.lowestCredit"></el-input>
             </div>
             <div class="save">
-                <el-button @click="submit">保存并返回</el-button>
+                <el-button @click="submit">{{actionName}}</el-button>
             </div>    
         </section>
-        <my-dialog :is-pop="isPop" :type="type" @dialog-close="onDialogClose"></my-dialog>   
+        <my-dialog 
+            :is-pop="isPop" 
+            :type="type" 
+            @dialog-close="onDialogClose"
+            :current-list="curTags"
+            @selected="onDialogConfirm"></my-dialog>   
     </article>
 </template>
 
 <script>
 import MyDialog from './my-dialog'
+import { mapState } from 'vuex';
+import { getSelector } from '../../../api/public';
+import { xhrErrHandler } from '../../../utils/util';
 export default {
     components:{
         MyDialog,
@@ -188,50 +216,176 @@ export default {
     data() {
       return {
         course:{//课程对象，一下内容为默认值
+            type:2,//默认普通课程
             ultimateRatio:30,
             excellentRatio:60,
             goodRatio:10,
             ultimateCredit:3,
             excellentCredit:2,
             goodCredit:1,
+            lowestCredit:0,
         },
         isPop:false,//是否打开弹窗
-        type:-1,//弹窗类型，type的值：1添加学期、2添加年级、3添加班级，-1默认
-        tags: [
-                { name: '标签一', type: '' },
-                { name: '标签二', type: 'success' },
-                { name: '标签三', type: 'info' },
-                { name: '标签四', type: 'warning' },
-                { name: '标签五', type: 'danger' }],
+        type:-1,//弹窗类型，type的值：1添加学期、2添加年级、3添加班级，4添加教师、-1默认
+        curTags:'',//当前被打开弹窗的已有对象列表
         imageUrl:'',
         termTags:[],//授课学期名称
         classTags:[],//授课班级名称
         gradeTags:[],//授课年级名称
+        teacherTags:[],//授课教师名称
         termList:[],//系统中的学期列表
         gradeList:[],//系统中的年级列表
         classList:[],//系统中的班级列表
+        actionName:'保存并返回',//操作类型（"保存并返回","修改并返回"）
+        siteList:[],//教学场地列表
+        courseCategoryList:[],//课程类型列表，2普通(默认) 4自修研习
       };
       
+    },
+    computed:{
+        ...mapState({
+            planList:state => state.election.planList,
+            courseList:state => state.election.courseTable
+        })
     },
     methods: {
         /**
          * @function 监听添加学期、年级和班级按钮事件，打开相应的对话框 
          * @param {1为添加学期，2为添加年级，3为添加班级} type
          */
-        onClickBtn(type){
+        onClickBtn(type){            
+            switch(type){
+                case 1://学期
+                    this.curTags = JSON.stringify(this.termTags);
+                    break;
+                case 2://年级
+                    this.curTags = JSON.stringify(this.gradeTags);
+                    break;
+                case 3://班级
+                    this.curTags = JSON.stringify(this.classTags);
+                    break;
+                case 4://教师
+                    this.curTags = JSON.stringify(this.teacherTags);
+                    break;
+                default:
+                    this.$message({
+                        type:'error',
+                        message:'设置对象列表出错！'
+                    })
+            }
             this.isPop = true;
             this.type = type;
         },
-        /**@function 添加对话框关闭事件 */
+
+        /**@function 监听对话框关闭事件 */
         onDialogClose(){
             this.isPop = false;
             this.type = -1;//初始化
             console.log('hi...')
         },
+
+        /**
+         * @function 监听点击删除Tag事件 
+         * @param {tag对象} tag
+         * @param {当前tag类型(1学期、2年级、3班级、4教师)} type
+         */
+        onCloseTag(tag,type){
+            let i = 0;
+            switch(type){                
+                case 1://学期
+                    for(let item of this.termTags){
+                        if(item.id == tag.id){
+                            this.termTags.splice(i,1);
+                            break;
+                        }
+                        i++;
+                    }
+                    break;
+                case 2://年级
+                    for(let item of this.gradeTags){
+                        if(item.id == tag.id){
+                            this.gradeTags.splice(i,1);
+                            break;
+                        }
+                        i++;
+                    }
+                    break;
+                case 3://班级
+                    for(let item of this.classTags){
+                        if(item.id == tag.id){
+                            this.classTags.splice(i,1);
+                            break;
+                        }
+                        i++;
+                    }
+                    break;
+                case 4://教师
+                    for(let item of this.teacherTags){
+                        if(item.id == tag.id){
+                            this.teacherTags.splice(i,1);
+                            break;
+                        }
+                        i++;
+                    }
+                    break;
+                default:
+                    this.$message({
+                        type:'error',
+                        message:'删除对象列表出错！'
+                    })
+            }
+        },
+
+        /**
+         * @function 监听对话框确认事件 
+         * @param {已经选择的对象列表JSON字符串，来自子组件‘my-dialog’} selectedList
+         * @param {对话框类型(1添加学期、2添加年级、3添加班级),来自子组件‘my-dialog’} type
+         */
+        onDialogConfirm(selectedList,type){
+            switch(type){
+                case 1://学期
+                    this.termTags = JSON.parse(selectedList);
+                    break;
+                case 2://年级
+                    this.gradeTags = JSON.parse(selectedList);
+                    break;
+                case 3://班级
+                    this.classTags = JSON.parse(selectedList);
+                    break;
+                case 4://教师
+                    this.teacherTags = JSON.parse(selectedList);
+                    break;
+                default:
+                    this.$message({
+                        type:'error',
+                        message:'对象列表添加出错！'
+                    })
+            }
+        },
+        onDialogClose(){
+            this.isPop = false;
+            this.type = -1;//初始化
+            console.log('hi...')
+        },
+
         /**@function 提交课程信息 */
         submit(){
            this.checkInputValue();
         },
+        
+        /**
+         * @function 获取给定的对象列表中对象id属性的值 
+         * @param {对象列表} objList
+         * @returns {返回以','隔开的字符串}
+         */
+        getIds(objList){
+            let _objList = [];
+            for(let item of objList){
+                _objList.push(item.id);
+            }
+            return _objList.toString();
+        },
+
         /**@function 检查输入项是否合法 */
         checkInputValue(){
             let isValid = true;//默认所有输入项都有效，false则表示无效
@@ -276,17 +430,46 @@ export default {
                 return false;
             }
         },
-      handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
-      handlePreview(file) {
-        console.log(file);
-      },
-      handlePictureCardPreview(){},
-      beforeAvatarUpload(){
+        handleRemove(file, fileList) {
+            console.log(file, fileList);
+        },
+        handlePreview(file) {
+            console.log(file);
+        },
+        handlePictureCardPreview(){},
+        beforeAvatarUpload(){
 
-      },
-      handleAvatarSuccess(){},
+        },
+        handleAvatarSuccess(){},
+    },
+    mounted(){
+        /**@function 获取上课地点 */
+        let params = {
+                f:'uxRom',
+                /* state:2, */
+                simple:0
+            };
+        getSelector(params)
+            .then(res => {
+                this.siteList = res.data.dataList;
+            })
+            .catch(err => {
+                xhrErrHandler(err)
+            })
+        /**@function 获取课程类型(2普通课程,4为自修课程) */
+        params = {
+                f:'uxCode',
+                /* state:2, */
+                codeType:11,
+                simple:0
+            };
+        getSelector(params)
+            .then(res => {
+                this.courseCategoryList = res.data.dataList;
+            })
+            .catch(err => {
+                xhrErrHandler(err)
+            })
     }
   }
 </script>
@@ -314,6 +497,9 @@ export default {
         background-color:#f6f9fb;
         min-height:88px!important;
     }
+    /* .teacher-wrapper .el-icon-plus{
+       font-size:24px;
+   } */
 </style>
 
 
@@ -350,23 +536,59 @@ export default {
         color:red;
         margin-right:5px;
     }
-   .course-name .el-input,
-   .teaching-site .el-select{
-       width:392px;
-       margin-right:38px;
-   }
-   .course-id .el-input,
-   .course-type .el-select{
-       width:320px;
-   }
-   .course-intro .el-textarea{
-       width:752px;
-       /* min-height:88px!important; */
-   }
-   .add-teacher-wrapper{
-       width:752px;
-       justify-content:space-between;
-   }
+    .course-name .el-input,
+    .teaching-site .el-select{
+        width:392px;
+        margin-right:38px;
+    }
+    .course-id .el-input,
+    .course-type .el-select{
+        width:320px;
+    }
+    .course-intro .el-textarea{
+        width:752px;
+        /* min-height:88px!important; */
+    }
+    .add-teacher-wrapper{
+        width:752px;
+        /* justify-content:space-between; */
+    }
+    .teacher-wrapper,
+    .org-wrapper{
+        display:flex;
+        width:376px;
+        box-sizing: border-box;
+        padding-left: 6px;
+        flex-flow: wrap;
+    }
+    .teacher-wrapper .el-button.is-circle,
+    .org-wrapper .el-button{
+        height:50px;
+        width:50px;
+        padding:0;
+        font-size:24px;
+    }
+
+    .teacher-avatar,
+    .org-avatar{
+        text-align:center;
+        width:50px;
+        margin-right:15px;  
+        margin-bottom:10px;    
+        
+    }
+    .teacher-avatar img{
+        height:50px;
+        width:50px;
+        border-radius:50%;
+        margin-bottom:5px;
+    }
+    .org-avatar img{
+        height:50px;
+        width:50px;
+        border-radius:4px;
+        margin-bottom:5px;
+    }
     .add-term{
         width:752px;
         min-height:133px;
@@ -388,6 +610,7 @@ export default {
     }
     .el-tag{
         margin-right:20px;
+        margin-bottom:10px;
     }
     .add-grade,.add-class{
         width:752px;

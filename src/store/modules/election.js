@@ -12,7 +12,7 @@ const state = {
     studentList:[], //获取学生选课名单
     taskList:[],//学生选课任务列表
     stuCourseStatus:[],//获取学生选课状态
-    electResultList:[],//选课结果
+    electResultList :[],//选课结果
     willCheckPlan:false,//是否要查看选课计划详情（false(默认不查看),true（查看））
 }
 
