@@ -9,7 +9,7 @@
                 </div>
                 <div class="plan-id">
                     <label for=""><span>*</span>计划编号</label>
-                    <el-input placeholder="输入编号" v-model="plan.id"></el-input>
+                    <el-input placeholder="输入编号" v-model="plan.NO"></el-input>
                 </div>
             </div>
             <div>
@@ -79,22 +79,21 @@
                 </el-switch>
             </div>
             <div class="save">
-                <el-button @click="submit">保存并返回</el-button>
+                <el-button @click="submit">{{actionName}}</el-button>
             </div>      
         </section>          
     </article>
 </template>
 
-
-
 <script>
-import { addElectPlan } from '../../../api/election.js' 
+import { addElectPlan, editElectPlan } from '../../../api/election.js' 
 import { getSelector } from '../../../api/public.js'
 export default {
     data() {
         return {
             plan:{},//计划对象
             termList:[],//学期列表
+            actionName:'保存并返回',//在新增选课计划下显示“保存并返回”，在编辑选课计划下显示“编辑并返回”
         };
     },
     methods: {
@@ -112,16 +111,16 @@ export default {
                 planEnd = this.plan.time[1];
             }
             
-            if((this.plan.ultimateRatio/100 + this.plan.excellentRatio + this.plan.goodRatio) > 1){                
+            if((this.plan.ultimateRatio/100 + this.plan.excellentRatio/100 + this.plan.goodRatio/100) > 1){                
                 this.$message('特优、优秀和良好三者比率之和超过100%');
                 return;
             }                
 
             let params = {
                 termId:this.plan.termId,
-                planNO:this.plan.id,
+                planNO:this.plan.NO,
                 planName:this.plan.name,
-                planMeno:this.plan.Memo,
+                planMeno:this.plan.memo,
                 planStart,
                 planEnd,
                 credit1:this.plan.ultimateCredit,
@@ -131,8 +130,14 @@ export default {
                 lvRate2:this.plan.excellentRatio/100,
                 lvRate3:this.plan.goodRatio/100,
                 couEditState:this.plan.isOpen?2:4,
+                xkpId:this.plan.xkpId
             }
-            addElectPlan(params)
+            let action;
+            if(this.$route.query.planId)//如果存在选课计划Id则是编辑模式
+                action = (param) => {return editElectPlan(param)}
+            else//如果选课计划Id为空，则是新增选课计划模式
+                action = (param) => {return addElectPlan(param)}
+            action(params)
                 .then(res => {
                     console.log(res)
                     if(res.data.success){
@@ -163,11 +168,11 @@ export default {
     },
     mounted(){
         let planId = this.$route.query.planId
-        console.log(planId);
         if(planId){//如果编号非空，则是来自点击选课计划而来，不是来自点击新增计划按钮而来
+            this.actionName = "编辑并返回"
             let planList = this.$store.state.election.planList;
             for(let plan of planList){
-                if(plan.planNO === planId){
+                if(plan.xkpId === planId){
                     let time = [];
                     if(plan.planStart){
                         time[0] = new Date(plan.planStart);
@@ -181,6 +186,7 @@ export default {
                         name:plan.planName,
                         memo:plan.planMeno,
                         time,
+                        xkpId:planId,
                         ultimateCredit:plan.credit1,
                         excellentCredit:plan.credit2,
                         goodCredit:plan.credit3,

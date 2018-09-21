@@ -227,9 +227,21 @@ export default {
             this.$emit('selected',JSON.stringify(this.selectedList),this.type);
             this.onClose();
         },
-        handleSelectionChange(){},
-        filterNode(){},
+
+        /**@function 过滤文本 */
+        filterNode(value, data) {
+            if (!value) return true;
+            return data.name.indexOf(value) !== -1;
+        }
     },
+
+    watch: {
+        /**@function 监听输入内容的变化 */
+        filterText(val) {
+            this.$refs.tree2.filter(val);
+        }
+    },
+    
     mounted(){       
         //this.selectedList = JSON.parse(this.currentList);//当前已经存在的对象列表 
     }

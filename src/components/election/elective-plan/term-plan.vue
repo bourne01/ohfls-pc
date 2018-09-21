@@ -2,7 +2,7 @@
     <div class="term-plans">
         <div class="term-plan" 
             :class="{active:idx===actIdx}"
-            @click="goCheckPlan(idx,plan.planNO)"
+            @click="goCheckPlan(idx,plan.xkpId)"
             v-for="(plan,idx) in plans" :key="idx" v-if="idx<planNums">
             <div>
                 <span class="term-txt">{{plan.termNm|getYear}}</span>
