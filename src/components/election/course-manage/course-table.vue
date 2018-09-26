@@ -72,11 +72,11 @@
         </template>
       </el-table-column>
       <el-table-column
-      label="操作"
-	  min-width="170">
-      <template slot-scope="scope"> 
-        <actions :current-course="scope.row"></actions>
-      </template>      
+        label="操作"
+        min-width="170">
+        <template slot-scope="scope"> 
+          <actions :current-course="scope.row"></actions>
+        </template>      
       </el-table-column>                        <!--操作列-->
     </el-table>
     <div class="footer">

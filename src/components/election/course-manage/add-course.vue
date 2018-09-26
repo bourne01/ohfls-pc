@@ -211,6 +211,7 @@ import { mapState } from 'vuex';
 import { getSelector } from '../../../api/public';
 import { xhrErrHandler } from '../../../utils/util';
 import { addCourse } from '../../../api/election';
+import { getTeachers } from '../../../api/teacher'
 export default {
     components:{
         MyDialog,
@@ -458,6 +459,7 @@ export default {
             formData.append('file',file);
             formData.append('xkpId',this.course.plan);
             formData.append('couNO',this.course.NO)
+            formData.append('couType',this.course.Type)
             formData.append('couName',this.course.name)
             formData.append('romId',this.course.site)
             formData.append('couExplain',this.course.memo)
@@ -469,8 +471,8 @@ export default {
             formData.append('lvRate3',this.course.goodRatio/100)
             formData.append('creditMin',this.course.lowestCredit)
             formData.append('manMax',this.course.limit)
-            formData.append('girlMax',this.course.girlMax)
-            formData.append('boyMax',this.course.boyLimt)
+            formData.append('girlMax',this.course.girlLimit)
+            formData.append('boyMax',this.course.boyLimit)
             formData.append('couThrIds',this.getIds(this.teacherTags))
             formData.append('termIds',this.getIds(this.termTags))
             formData.append('claIds',this.getIds(this.classTags))
@@ -503,6 +505,86 @@ export default {
                     xhrErrHandler(err,this.$message,this.$router)
                 })
         },
+
+        /**
+         * @function 根据Id查询名称
+         * @param {id字符列表，以','隔开} id字符串
+         * @param {对象类型} type
+         * @returns {对象（{name:'name',id:'id'...}）列表} 返回对象列表
+         */
+        getListById(type,idList){
+            if(!idList)return;
+            else{
+                idList = idList.split(',');
+            }
+            let objList = [];
+            let params = {};
+            switch(type){
+                case 'Term':
+                    params = {
+                        f:'uxTerm',
+                        simple:0
+                    };                    
+                    break;               
+                case 'Grade':
+                    params = {
+                        f:'uxCode',
+                        codeType:35,
+                        simple:0
+                    };
+                    break;
+                case 'Class':
+                    params = {
+                        f:'uxTerm',
+                        simple:0
+                    };
+                    break;
+                 case 'Teacher':
+                    
+                    break;
+            }
+            if(type != 'Teacher'){
+                getSelector(params)
+                        .then(res => {
+                            idList.forEach(element => {
+                                for(let item of res.data.dataList){
+                                    if(element == item.id){
+                                        objList.push(item)
+                                    }
+                                }    
+                            });
+                            return objList;
+                        })
+            }else{
+                getTeachers('thr!query.action',{})
+                .then(res => {
+                    if(res.data.success){
+                        idList.forEach(ele => {
+                            for(let item of res.data.dataList){
+                                if(ele == item.thrId){
+                                    objList.push({name:item.thrName,id:item.thrId})
+                                }
+                                
+                            }
+                            return objList;
+                        })
+                            
+                    }else{
+                        this.$message({
+                            type:'error',
+                            message:res.data.message
+                        })
+                    }
+                })
+                .catch(err => {
+                    xhrErrHandler(err,this.$router,this.$message)
+                })
+            }
+            //console.log(objList)
+            
+        },       
+
+
         /**@function 文件上传成功后 */
         onSuccess(res,file,fileList){
             
@@ -538,8 +620,37 @@ export default {
                 xhrErrHandler(err,this.$message,this.$router)
             })
         /**@function 当前是否来自新建课程还是编辑课程 */
-        if(this.$route.query.courseId){
+        let courseId = this.$route.query.courseId;
+        if(courseId){
             this.isNewCourse = false;
+            for(let course of this.courseList){
+                if(course.selCouId === courseId){
+                    this.course = {
+                       plan:course.xkpId,
+                       NO:course.couNO,
+                       name:course.couName,
+                       type:course.couType,
+                       site:course.romId,
+                       memo:course.couExplain,
+                       ultimateCredit:course.credit1,
+                       excellentCredit:course.excellentCredit,
+                       goodCredit:course.goodCredit,
+                       ultimateRatio:course.lvRate1,
+                       excellentRatio:course.lvRate2,
+                       goodRatio:course.lvRate3,
+                       lowestCredit:course.creditMin,
+                       limit:course.manMax,
+                       girlLimit:course.girlMax,
+                       boyLimit:course.boxMax,
+                    }
+                    this.termTags = this.getListById('Term',course.termIds);
+                    console.log('term-------------------')
+                    console.log(this.termTags)
+                    this.gradeTags = this.getListById('Grade',course.grades);
+                    this.classTags = this.getListById('Class',course.claIds);
+                    this.teacherTags = this.getListById('Teacher',course.couThrIds);
+                }
+            }
         }
     }
   }

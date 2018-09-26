@@ -13,10 +13,10 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapState, mapMutations } from 'vuex';
 import SubCoursePopup from './sub-course/sub-course-popup'
 export default {
-    props:['current-row'],
+    props:['current-course'],
     components:{
         SubCoursePopup
     },
@@ -26,13 +26,22 @@ export default {
            openSubCourse:false
         }
     },
+    computed:{
+        ...mapState('election',{
+            courseList:state => state.courseTable
+        })
+    },
     methods:{
         ...mapActions('election',["delCourse"]),
         /**
          * @function 监听打开弹窗
          */
         edit(){
-            this.scPopup.isPop = true;//打开弹窗
+            //console.table(this.courseList)
+            console.log(this.currentCourse)
+            //this.scPopup.isPop = true;//打开弹窗
+            this.$router.push({name:'AddCourse',query:{courseId:this.currentCourse.selCouId}})
+            console.log('ccccc');
         },
         /**
          *@function 监听删除事件
