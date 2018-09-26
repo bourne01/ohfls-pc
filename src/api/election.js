@@ -33,13 +33,19 @@ export const leaderCourses = (params) => {
  * @function 新增课程
  */
 export const addCourse = (params) => {
-    return http(`${baseURL}/selCou!newRec.action`,{params});
+    return http({
+        method:'post',
+        url:`${baseURL}/selCou!newRec.action`,
+        data:params})
 }
 /**
  * @function 编辑课程
  */
 export const editCourse = (params) => {
-    return http(`${baseURL}/selCou!edit.action`,{params});
+    return http({
+        method:'post',
+        url:`${baseURL}/selCou!edit.action`,
+        data:params});
 }
 /**
  * @function 删除课程

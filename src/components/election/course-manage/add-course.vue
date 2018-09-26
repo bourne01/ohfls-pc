@@ -5,14 +5,15 @@
             <div>
                 <label for=""><!-- <span>*</span> -->课程封面</label>
                 <el-upload
+                    ref="upload"
                     action="https://jsonplaceholder.typicode.com/posts/"                    
                     class="upload-course-cover"
-                    :show-file-list="false"
-                    :on-success="handleAvatarSuccess"
-                    :before-upload="beforeAvatarUpload">
+                    :auto-upload="false"
+                    :on-change="previewImage"
+                    :on-success="onSuccess"
+                    :before-upload="onBeforeLoad">
                     <img v-if="imageUrl" :src="imageUrl" class="avatar">
-                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-            
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>            
                 </el-upload>
             </div>
             <div class="flex">
@@ -22,7 +23,7 @@
                 </div>
                 <div class="course-id">
                     <label for=""><span>*</span>课程编号</label>
-                    <el-input placeholder="必填" v-model="course.id"></el-input>
+                    <el-input placeholder="必填" v-model="course.NO"></el-input>
                 </div>
             </div>
             <div class="flex">
@@ -31,9 +32,9 @@
                     <el-select v-model="course.plan">
                         <el-option
                             v-for="item in planList"
-                            :key="item.planNO"
+                            :key="item.xkpId"
                             :label="item.planName"
-                            :value="item.planNO">
+                            :value="item.xkpId">
                         </el-option>
                     </el-select>
                 </div>
@@ -152,7 +153,7 @@
                 </div>
                 <div>
                     <label for=""><!-- <span>*</span> -->男生上限</label>
-                    <el-input v-model="course.manLimit"></el-input>
+                    <el-input v-model="course.boyLimit"></el-input>
                 </div>
                 <div>
                     <label for=""><!-- <span>*</span> -->女生上限</label>
@@ -209,12 +210,14 @@ import MyDialog from './my-dialog'
 import { mapState } from 'vuex';
 import { getSelector } from '../../../api/public';
 import { xhrErrHandler } from '../../../utils/util';
+import { addCourse } from '../../../api/election';
 export default {
     components:{
         MyDialog,
     },
     data() {
       return {
+        params:{},
         course:{//课程对象，一下内容为默认值
             type:2,//默认普通课程
             ultimateRatio:30,
@@ -224,7 +227,9 @@ export default {
             excellentCredit:2,
             goodCredit:1,
             lowestCredit:0,
+            parentCourseId:undefined,
         },
+        isNewCourse:true,//判断当前是否新建，true为新建，fasle为编辑
         isPop:false,//是否打开弹窗
         type:-1,//弹窗类型，type的值：1添加学期、2添加年级、3添加班级，4添加教师、-1默认
         curTags:'',//当前被打开弹窗的已有对象列表
@@ -368,9 +373,21 @@ export default {
             console.log('hi...')
         },
 
+        /**@function 预览图片 */
+        previewImage (file, fileList) {
+            let fileName = file.name;
+            let regex = /(.jpg|.jpeg|.gif|.png|.bmp)$/;
+            if (regex.test(fileName.toLowerCase())) {
+                this.imageUrl = file.url;
+            } else {
+                this.$message.error('请选择图片文件');
+            }
+        },
+
+
         /**@function 提交课程信息 */
-        submit(){
-           this.checkInputValue();
+        submit(){            
+            this.$refs.upload.submit();
         },
         
         /**
@@ -390,25 +407,25 @@ export default {
         checkInputValue(){
             let isValid = true;//默认所有输入项都有效，false则表示无效
              /**@function 检查必填项，是否已经都有内容，如果为空，则提示用户输入相应内容 */
-            if(!course.name){
+            if(!this.course.name){
                 this.$message({
                     type:'warning',
                     message:'课程名称不能为空！'
                 });
                 isValid = false;
-            }else if(!course.id){
+            }else if(!this.course.NO){
                 this.$message({
                     type:'warning',
                     message:'课程编号不能为空！'
                 });
                 isValid = false;
-            }else if(!course.plan){
+            }else if(!this.course.plan){
                 this.$message({
                     type:'warning',
                     message:'选课计划不能为空！'
                 });
                 isValid = false;
-            }else if(!course.limit){
+            }else if(!this.course.limit){
                 this.$message({
                     type:'warning',
                     message:'学生总人数限制不能为空！'
@@ -416,7 +433,7 @@ export default {
                 isValid = false;
             }
             /**@function 特优、优秀和良好三者比例之和不能超过100% */
-            if((course.ultimateRatio/100 + course.excellentRatio/100 + course.goodRatio/100) > 1){
+            if((this.course.ultimateRatio/100 + this.course.excellentRatio/100 + this.course.goodRatio/100) > 1){
                 this.$message({
                     type:'warning',
                     message:'特优、优秀和良好三者比例之和不能超过100%'
@@ -430,17 +447,67 @@ export default {
                 return false;
             }
         },
-        handleRemove(file, fileList) {
-            console.log(file, fileList);
-        },
-        handlePreview(file) {
-            console.log(file);
-        },
-        handlePictureCardPreview(){},
-        beforeAvatarUpload(){
 
+        /**@function 在点击提交按钮后，文件上传之前，检查表单元素是否有效，
+         * 然后把文件与其它参数合二为一，传递给接口函数
+         * @param {要上传的文件对象} file
+         */
+        onBeforeLoad(file){      
+            //this.checkInputValue();           
+            let formData = new FormData();
+            formData.append('file',file);
+            formData.append('xkpId',this.course.plan);
+            formData.append('couNO',this.course.NO)
+            formData.append('couName',this.course.name)
+            formData.append('romId',this.course.site)
+            formData.append('couExplain',this.course.memo)
+            formData.append('credit1',this.course.ultimateCredit)
+            formData.append('credit2',this.course.excellentCredit)
+            formData.append('credit3',this.course.goodCredit)
+            formData.append('lvRate1',this.course.ultimateRatio/100)
+            formData.append('lvRate2',this.course.excellentRatio/100)
+            formData.append('lvRate3',this.course.goodRatio/100)
+            formData.append('creditMin',this.course.lowestCredit)
+            formData.append('manMax',this.course.limit)
+            formData.append('girlMax',this.course.girlMax)
+            formData.append('boyMax',this.course.boyLimt)
+            formData.append('couThrIds',this.getIds(this.teacherTags))
+            formData.append('termIds',this.getIds(this.termTags))
+            formData.append('claIds',this.getIds(this.classTags))
+            formData.append('gradeIds',this.getIds(this.gradeTags))
+
+            addCourse(formData)
+                .then(res => {
+                    if(res.data.success){
+                        this.$message({
+                            type:'info',
+                            message:'课程创建成功！'
+                        })
+                    }else{
+                        if(res.data.type === 1){
+                                this.$message({
+                                type:'error',
+                                message:res.data.message
+                            });
+                        }else{
+                            console.log(res.data.message);
+                            this.$message({
+                                type:'error',
+                                message:'发生未知错误，请联系管理员'
+                            })
+                        }
+                        
+                    }                    
+                })
+                .catch(err => {
+                    xhrErrHandler(err,this.$message,this.$router)
+                })
         },
-        handleAvatarSuccess(){},
+        /**@function 文件上传成功后 */
+        onSuccess(res,file,fileList){
+            
+            this.imageUrl = res.url;
+        },
     },
     mounted(){
         /**@function 获取上课地点 */
@@ -454,7 +521,7 @@ export default {
                 this.siteList = res.data.dataList;
             })
             .catch(err => {
-                xhrErrHandler(err)
+                xhrErrHandler(err,this.$message,this.$router)
             })
         /**@function 获取课程类型(2普通课程,4为自修课程) */
         params = {
@@ -468,8 +535,12 @@ export default {
                 this.courseCategoryList = res.data.dataList;
             })
             .catch(err => {
-                xhrErrHandler(err)
+                xhrErrHandler(err,this.$message,this.$router)
             })
+        /**@function 当前是否来自新建课程还是编辑课程 */
+        if(this.$route.query.courseId){
+            this.isNewCourse = false;
+        }
     }
   }
 </script>
