@@ -12,7 +12,7 @@
                     :on-change="previewImage"
                     :on-success="onSuccess"
                     :before-upload="onBeforeLoad">
-                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                    <img v-if="imageUrl" :src="imageUrl" class="course-cover">
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>            
                 </el-upload>
             </div>
@@ -210,7 +210,7 @@ import MyDialog from './my-dialog'
 import { mapState } from 'vuex';
 import { getSelector } from '../../../api/public';
 import { xhrErrHandler } from '../../../utils/util';
-import { addCourse } from '../../../api/election';
+import { addCourse, getCover } from '../../../api/election';
 import { getTeachers } from '../../../api/teacher'
 export default {
     components:{
@@ -477,14 +477,16 @@ export default {
             formData.append('termIds',this.getIds(this.termTags))
             formData.append('claIds',this.getIds(this.classTags))
             formData.append('gradeIds',this.getIds(this.gradeTags))
+            formData.append('parCouId',this.course.parentCourseId)
 
             addCourse(formData)
                 .then(res => {
                     if(res.data.success){
                         this.$message({
-                            type:'info',
+                            type:'success',
                             message:'课程创建成功！'
                         })
+                        this.$router.push('/home/election');
                     }else{
                         if(res.data.type === 1){
                                 this.$message({
@@ -510,77 +512,101 @@ export default {
          * @function 根据Id查询名称
          * @param {id字符列表，以','隔开} id字符串
          * @param {对象类型} type
-         * @returns {对象（{name:'name',id:'id'...}）列表} 返回对象列表
          */
         getListById(type,idList){
-            if(!idList)return;
+            if(!idList)idList= [];
             else{
                 idList = idList.split(',');
             }
-            let objList = [];
+
             let params = {};
             switch(type){
                 case 'Term':
+                    if(idList.length === 0)break;
                     params = {
                         f:'uxTerm',
                         simple:0
-                    };                    
+                    };
+                    this.termTags = [];
+                    getSelector(params)
+                        .then(res => {
+                            idList.forEach(element => {
+                                for(let item of res.data.dataList){
+                                    if(element == item.id){
+                                        this.termTags.push(item)
+                                    }
+                                }    
+                            });
+                            
+                        })                    
                     break;               
                 case 'Grade':
+                    if(idList.length === 0)break;
                     params = {
                         f:'uxCode',
                         codeType:35,
                         simple:0
                     };
-                    break;
-                case 'Class':
-                    params = {
-                        f:'uxTerm',
-                        simple:0
-                    };
-                    break;
-                 case 'Teacher':
-                    
-                    break;
-            }
-            if(type != 'Teacher'){
-                getSelector(params)
+                    this.gradeTags = [];
+                    getSelector(params)
                         .then(res => {
                             idList.forEach(element => {
                                 for(let item of res.data.dataList){
                                     if(element == item.id){
-                                        objList.push(item)
+                                        this.gradeTags.push(item)
                                     }
                                 }    
                             });
-                            return objList;
-                        })
-            }else{
-                getTeachers('thr!query.action',{})
-                .then(res => {
-                    if(res.data.success){
-                        idList.forEach(ele => {
-                            for(let item of res.data.dataList){
-                                if(ele == item.thrId){
-                                    objList.push({name:item.thrName,id:item.thrId})
-                                }
-                                
-                            }
-                            return objList;
-                        })
                             
-                    }else{
-                        this.$message({
-                            type:'error',
-                            message:res.data.message
+                        }) 
+                    break;
+                case 'Class':
+                    if(idList.length === 0)break;
+                    params = {
+                        f:'uxCla',
+                        simple:0
+                    };
+                    this.classTags = [];
+                    getSelector(params)
+                        .then(res => {
+                            idList.forEach(element => {
+                                for(let item of res.data.dataList){
+                                    if(element == item.id){
+                                        this.classTags.push(item)
+                                    }
+                                }    
+                            });
+                            
                         })
-                    }
-                })
-                .catch(err => {
-                    xhrErrHandler(err,this.$router,this.$message)
-                })
-            }
-            //console.log(objList)
+                    break;
+                 case 'Teacher':
+                    if(idList.length === 0)break;
+                    getTeachers('thr!query.action',{})
+                        .then(res => {
+                            if(res.data.success){
+                                idList.forEach(ele => {
+                                    for(let item of res.data.dataList){
+                                        if(ele == item.thrId){
+                                            this.teacherTags.push({name:item.thrName,id:item.thrId})
+                                        }
+                                    }
+                                    
+                                })
+                                    
+                            }else{
+                                this.$message({
+                                    type:'error',
+                                    message:res.data.message
+                                })
+                            }
+                        })
+                        .catch(err => {
+                            xhrErrHandler(err,this.$router,this.$message)
+                        })
+                    break;
+                default:
+                    this.$message('类型有误')
+            }           
             
         },       
 
@@ -640,17 +666,25 @@ export default {
                        goodRatio:course.lvRate3,
                        lowestCredit:course.creditMin,
                        limit:course.manMax,
-                       girlLimit:course.girlMax,
-                       boyLimit:course.boxMax,
+                       girlLimit:course.girlMax==-1?'':course.girlMax,
+                       boyLimit:course.boyMax==-1?'':course.boyMax,
+                       limitPerClass:course.claStuMax==-1?'':course.claStuMax,
+                       parentCourseId:course.parCouId,
                     }
-                    this.termTags = this.getListById('Term',course.termIds);
-                    console.log('term-------------------')
-                    console.log(this.termTags)
-                    this.gradeTags = this.getListById('Grade',course.grades);
-                    this.classTags = this.getListById('Class',course.claIds);
-                    this.teacherTags = this.getListById('Teacher',course.couThrIds);
+                    /**@function 根据Id获取对象列表 */
+                    this.getListById('Term',course.termIds);
+                    this.getListById('Grade',course.grades);               
+                    this.getListById('Class',course.claIds);
+                    this.getListById('Teacher',course.couThrIds);
+                    /**获取课程封面 */
+                    this.imageUrl = 'p/p/couCover?couId='+courseId+'&getDef=1&type=1';
                 }
             }
+        }
+        /**@function 当前是来自添加子课程 */
+        let parentCourseId = this.$route.query.parentCourseId;
+        if(parentCourseId){
+            this.course.parentCourseId = parentCourseId;
         }
     }
   }
@@ -668,7 +702,14 @@ export default {
         overflow: hidden;
         background-color:#f6f9fb;
     }
-    .avatar-uploader-icon {
+    .upload-course-cover .el-upload-list{
+        width:752px;
+    }
+    .course-cover{
+        width:393px;
+        height:239px;
+    }
+    .upload-course-cover .avatar-uploader-icon {
         font-size: 28px;
         color: #8c939d;
     }

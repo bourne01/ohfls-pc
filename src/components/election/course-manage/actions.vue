@@ -1,12 +1,9 @@
 <template>
     <div>
-        <el-button type="text" size="small" class="edit" @click="edit()" >编辑</el-button>
-        <el-button type="text" size="small">添加子课程</el-button>
-        <el-button type="text" 
-                 size="mini"
-                  @click="del()"
-                  >                                                        
-                  <img :src="require('../../../assets/delete-oc.png')" alt=""  >
+        <el-button type="text" size="small" class="edit" @click="edit" >编辑</el-button>
+        <el-button type="text" size="small" @click="addSubCourse">添加子课程</el-button>
+        <el-button type="text" size="mini"  @click="deleteCourse" icon="el-icon-delete">                                                       
+            
          </el-button>
          <sub-course-popup :sub-course-popup="scPopup"></sub-course-popup>
     </div>
@@ -15,6 +12,8 @@
 <script>
 import { mapActions, mapState, mapMutations } from 'vuex';
 import SubCoursePopup from './sub-course/sub-course-popup'
+import { xhrErrHandler } from '../../../../../../../Bourne-Dev/FE/ohfls-pc/src/utils/util';
+import { changeCouState } from '../../../../../../../Bourne-Dev/FE/ohfls-pc/src/api/election';
 export default {
     props:['current-course'],
     components:{
@@ -32,37 +31,90 @@ export default {
         })
     },
     methods:{
-        ...mapActions('election',["delCourse"]),
+        ...mapActions('election',["removeCourse"]),
         /**
-         * @function 监听打开弹窗
+         * @function 监听点击编辑按钮事件，跳转到编辑页面
          */
         edit(){
-            //console.table(this.courseList)
-            console.log(this.currentCourse)
             //this.scPopup.isPop = true;//打开弹窗
-            this.$router.push({name:'AddCourse',query:{courseId:this.currentCourse.selCouId}})
-            console.log('ccccc');
+            this.$router.push({
+                name:'AddCourse',
+                query:{courseId:this.currentCourse.selCouId}
+            })
         },
+
         /**
-         *@function 监听删除事件
+         * @function 监听添加子课程事件，跳转到新增课程页面
          */
-        del(index, rows){            
-            this.$confirm('确认删除该课程吗?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-            }).then(() => {
-               this.$store.dispatch('election/delCourse',params)
-                this.$message({
-                type: 'success',
-                message: '删除成功!'
-            });
-            }).catch(() => {
-            this.$message({
-                type: 'info',
-                message: '已取消删除'
-            });          
-            });
+        addSubCourse(){
+            this.$router.push({
+                name:'AddCourse',
+                query:{parentCourseId:this.currentCourse.selCouId}
+            })
+        },
+
+        /**
+         * @function 监听删除课程事件,然后根据Id删掉所选课程
+         */
+        deleteCourse:async function(){   
+            let courseId = this.currentCourse.selCouId;         
+            this.$confirm('确认删除该课程吗?', '提示', {confirmButtonText: '确定',cancelButtonText: '取消',type: 'warning'})
+                .then(() => {
+                    /**
+                     * 不能删除课程状态是“2开启，3关闭”这2种状态的课程（ 4确认 5完成）
+                     */
+                    if(this.currentCourse.couState == 2 || this.currentCourse.couState == 3){
+                        changeCouState({selCouIds:courseId,couState:5})
+                            .then(res => {
+                                if(res.data.success){
+                                    this.removeCourse({selCouIds:courseId})
+                                    .then(res => {
+                                        if(res.data.success)
+                                            this.$message({
+                                            type: 'success',
+                                            message: '删除成功!'
+                                            })
+                                        else{
+                                            if(res.data.type == 1){
+                                                this.$message({
+                                                    type:'error',
+                                                    message:res.data.message
+                                                })
+                                            }else{
+                                                this.$message({
+                                                    type:'error',
+                                                    message:'发生未知错误，请联系管理员！'
+                                                })
+                                                console.log(res.data.message)
+                                            }
+                                        }                        
+                                    })
+                                    .catch(err => {
+                                        xhrErrHandler(err,this.$message,this.$router)
+                                    })
+                                }else{
+                                    if(res.data.type == 1){
+                                        this.$message({
+                                            type:'error',
+                                            message:res.data.message
+                                        })
+                                    }else{
+                                        this.$message({
+                                            type:'error',
+                                            message:'发生未知错误，请联系管理员！'
+                                        })
+                                        console.log(res.data.message)
+                                    }
+                                }
+                            })
+                    }
+                })
+                .catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });          
+                    });
         },
         
     }
@@ -72,5 +124,14 @@ export default {
 }
 </script>
 
+
+<style>
+    .el-icon-delete{
+        color: #ff7a7b;
+        font-size: 14px;
+    }
+</style>
+
 <style scoped>
+    
 </style>

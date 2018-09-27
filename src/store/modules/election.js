@@ -1,7 +1,8 @@
 import{
         getCourseList,getStuElectState,
         getElectDuties,getElectResults,
-        getStuAndCouRelations,getElectPlans       
+        getStuAndCouRelations,getElectPlans,
+        delCourse,       
     } from '../../api/election'
 import * as type from './mutations-type'
 
@@ -13,6 +14,7 @@ const state = {
     taskList:[],//学生选课任务列表
     stuCourseStatus:[],//获取学生选课状态
     electResultList :[],//选课结果
+    currentPlanId:null,//当前被选中计划Id
     willCheckPlan:false,//是否要查看选课计划详情（false(默认不查看),true（查看））
 }
 
@@ -42,6 +44,9 @@ const mutations = {
     },
     [type.SET_CHECK_PLAN_DETAIL](state,params){
         state.willCheckPlan = params; 
+    },
+    [type.SET_CURRENT_PLAN_ID](state,params){
+        state.currentPlanId = params;
     }
 }
 
@@ -75,7 +80,7 @@ const actions = {
         })
     },
     //删除课程
-    delCou({dispatch},params){
+    removeCourse({dispatch},params){
         return new Promise((resolve,reject) =>{
             delCourse(params)
                 .then(res =>{

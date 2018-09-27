@@ -89,6 +89,7 @@ export default {
         padding:0;
         border-radius:2px;
         margin-left:40px;
+        font-family: 'Microsoft Yahei'
     }
     .el-select{                                 /*选择器的位置*/
         float: right;

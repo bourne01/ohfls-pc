@@ -2,7 +2,7 @@
     <div class="term-plans">
         <div class="term-plan" 
             :class="{active:idx===actIdx}"
-            @click="goCheckPlan(idx,plan.xkpId)"
+            @click="onClick(idx,plan.xkpId)"
             v-for="(plan,idx) in plans" :key="idx" v-if="idx<planNums">
             <div>
                 <span class="term-txt">{{plan.termNm|getYear}}</span>
@@ -25,6 +25,7 @@
 import { getTerms } from '../../../api/public.js'
 import { getElectPlans } from '../../../api/election.js'
 import { xhrErrHandler } from '../../../utils/util.js'
+import { mapMutations } from 'vuex';
 export default {
     props:['idx'],
     data(){
@@ -63,14 +64,18 @@ export default {
         }
     },
     methods:{
+        ...mapMutations('election',['SET_CURRENT_PLAN_ID']),
         /**
-         * @function 监听点击某计划事件，然后跳转该计划详情页面
+         * @function 监听点击某计划事件，然后记录当前被选择计划Id
          * @param {计划显示序号} index
          * @param {计划编号} planId
          */
-        goCheckPlan(index,planId){
+        onClick(index,planId){
             this.actIdx = index;
-            this.$router.push({name:'AddElectivePlan',query:{planId}})
+            //this.$router.push({name:'AddElectivePlan',query:{planId}})
+            this['SET_CURRENT_PLAN_ID'](planId);
+            console.log('fafa');
+
         }
     },
     mounted(){
@@ -80,6 +85,9 @@ export default {
             .then(res => {
                 if(res.success){
                     //this.plans = res.dataList.reverse();
+                    if(this.plans.length>0){//当前计划列表非空时      
+                        this['SET_CURRENT_PLAN_ID'](this.plans[0].xkpId);
+                    }
                 }else{
                     this.$message(res.message)
                 }
@@ -87,6 +95,9 @@ export default {
             .catch(err => {
                 xhrErrHandler(err,this.$router,this.$message);
             })
+        
+        
+
         /**根据屏幕分辨率判定界面显示及格选课计划 */
         let screenWidth = window.screen.width;        
         if(screenWidth>1920)

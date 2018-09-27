@@ -29,3 +29,5 @@ export const GET_CLASSSTUDENT ='GET_CLASSSTUDENT'
 export const GET_PLANLIST ='GET_PLANLIST'
 //设置要查看选课计划详情标志
 export const SET_CHECK_PLAN_DETAIL = 'SET_CHECK_PLAN_DETAIL'
+//设置当前选课计划Id
+export const SET_CURRENT_PLAN_ID = 'SET_CURRENT_PLAN_ID'

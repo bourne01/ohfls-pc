@@ -51,6 +51,7 @@ import ShowElecitvePlan from './elective-plan/show-elective-plan.vue'
 import electiveNameList from './elective-name-list/elective-name-list.vue'
 import courseManage from './course-manage/course-manage.vue'
 import electiveStatus from './elective-status/elective-status.vue'
+import { mapState } from 'vuex';
 export default {
  components:{
         ShowElecitvePlan,
@@ -64,6 +65,11 @@ export default {
               tabIndex:1,//默认激活课程管理选项卡
         }   
     },
+    computed:{
+        ...mapState('election',{
+            planId:state => state.currentPlanId,
+        })
+    },
     methods:{
          handleClick(tab, event) {
         console.log(tab, event);
@@ -73,7 +79,7 @@ export default {
           /**
            * xkpId的参数应该来自组件 temp-plan
            */
-          this.$router.push({name:'AddElectivePlan',params:{xkpId:11}})
+          this.$router.push({name:'AddElectivePlan',query:{planId:this.planId}})
       },
     },
     created(){
@@ -129,7 +135,7 @@ export default {
        height:4px;
        position:absolute;
        left:65px;
-       bottom:-15px;
+       bottom:-12px;
        background-color:#0d714a;
    }
    .active-bar2{
@@ -138,7 +144,7 @@ export default {
        height:4px;
        position:absolute;
        left:65px;
-       bottom:-15px;
+       bottom:-12px;
        background-color:#0d714a;
    }
    .active .active-bar1,

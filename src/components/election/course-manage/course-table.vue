@@ -145,7 +145,8 @@ import {mapActions,mapState} from 'vuex'
       },
       handleCommand(command) {
         this.$message('click on item ' + command);
-      },
+	  },
+	  
       ...mapActions('election',['getCourseTable','getElectResultList'])
     },
     filters:{
@@ -155,16 +156,25 @@ import {mapActions,mapState} from 'vuex'
         else
           return val
       }
-    },
+	},
+	watch:{
+		//监听当前计划Id的变化，则更新课程列表
+		currentPlanId:function(){
+			let url = 'selCou!query2.action';
+			let params = {start:0,limit:10,parCouId:-1,xkpId:this.currentPlanId};
+			this.getCourseTable({url,params})
+		}
+	},
     computed:{
-      ...mapState('election',{
-          courseTable:state => state.courseTable
+	...mapState('election',{
+		  courseTable:state => state.courseTable,
+		  currentPlanId:state => state.currentPlanId
       })
     },
     mounted(){
-      let url = 'selCou!query2.action';
-      let params = {start:0,parCouId:-1};
-      this.getCourseTable({url,params})
+      /* let url = 'selCou!query2.action';
+      let params = {start:0,limit:10,parCouId:-1};
+      this.getCourseTable({url,params}) */
     }
 
 }
