@@ -37,7 +37,7 @@ export const changePassword = (params) => {
     return http(`${baseURL}/stu!changePsw.action`,{params})
 }
 /**
- * @function 充值学生密码
+ * @function 重置学生密码
  */
 export const resetPassword = (params) => {
     return http(`${baseURL}/stu!resetPsw.action`,{params})

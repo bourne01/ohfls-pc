@@ -24,7 +24,7 @@ const mutations ={
 
 const actions = {
     //获取年级信息
-   getGradeTable({commit},params){
+   getClassTable({commit},params){
        return new Promise((resolve,reject)=>{
         getClasses(params)
             .then(res =>{
@@ -38,7 +38,7 @@ const actions = {
        })
    },
    //获取班级学生信息
-   getClassTable({commit},params){
+   getClassStudentList({commit},params){
        return new Promise((resolve,reject)=>{
         getClassStudents(params.url,params.params)
             .then(res =>{
