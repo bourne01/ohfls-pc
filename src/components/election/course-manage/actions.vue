@@ -12,8 +12,8 @@
 <script>
 import { mapActions, mapState, mapMutations } from 'vuex';
 import SubCoursePopup from './sub-course/sub-course-popup'
-import { xhrErrHandler } from '../../../../../../../Bourne-Dev/FE/ohfls-pc/src/utils/util';
-import { changeCouState } from '../../../../../../../Bourne-Dev/FE/ohfls-pc/src/api/election';
+import { xhrErrHandler } from '../../../utils/util';
+import { changeCouState } from '../../../api/election';
 export default {
     props:['current-course'],
     components:{

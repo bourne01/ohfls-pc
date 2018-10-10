@@ -2,7 +2,7 @@
 	<div class="class-student-table">    <!--这是右边新增学生表格-->
 		<el-table
 			ref="multipleTable"
-			:data="classTable"
+			:data="classStudentList"
 			tooltip-effect="dark"
 			border
 			max-height="625"
@@ -150,7 +150,7 @@ export default {
 
 	computed:{
 		...mapState('student',{
-			classTable:state => state.classTable
+			classStudentList:state => state.classStudents
 		})
 	},
 

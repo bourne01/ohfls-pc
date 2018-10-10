@@ -23,6 +23,8 @@ export const GET_STUCOURSESTATUS = 'GET_STUCOURSESTATUS'
 export const GET_TEACHINGSITE = 'GET_TEACHINGSITE'
 //获取年级信息
 export const GET_GRADE = 'GET_GRADE'
+//获取年级信息
+export const GET_CLASS = 'GET_CLASS'
 //获取班级学生信息
 export const GET_CLASSSTUDENT ='GET_CLASSSTUDENT'
 //获取选课计划列表

@@ -2,7 +2,7 @@
     <div class="class-table">
        <!--这是新增班级表格左边部分-->
         <el-table 
-            :data="gradeTable"
+            :data="classTable"
             style="width:100%;margin-left:20px;"
             max-height="625"
             border
@@ -92,7 +92,7 @@ import {mapActions,mapState} from 'vuex'
     },
     computed:{
         ...mapState('student',{
-            gradeTable:state => state.gradeTable
+            classTable:state => state.classTable
         })
     },
     mounted(){

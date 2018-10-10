@@ -10,8 +10,8 @@
                 <el-button slot="append" icon="el-icon-search"></el-button>
             </el-input>
         </div>
-        <grade-popup :is-pop="isGradePop"></grade-popup>
-        <class-popup :is-pop="isClassPop"></class-popup>
+        <grade-popup :is-pop="isGradePop" @close-pop="isGradePop=false"></grade-popup>
+        <class-popup :is-pop="isClassPop" @close-pop="isClassPop=false"></class-popup>
     </div>
     
 </template>

@@ -1,13 +1,13 @@
 <template>
     <div class="course-manage-table">                                                                   
     <el-table    
-    ref="multipleTable"
-    :data="courseTable"
-    tooltip-effect="dark"
-    style="width: 100%;"
-    @selection-change="handleSelectionChange"
-    max-height:610px
-    border
+      ref="multipleTable"
+      :data="courseTable"
+      tooltip-effect="dark"
+      style="width: 100%;"
+      @selection-change="handleSelectionChange"
+      max-height:610px
+      border
     >                                               <!--表格主题--> 
       <el-table-column                                              
       type="selection"
