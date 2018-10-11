@@ -23,7 +23,7 @@
 			</el-table-column>
 			<el-table-column
 				prop="stuSex"
-				label="性别"				>
+				label="性别">
 			</el-table-column>
 			<el-table-column
 				prop="credit"

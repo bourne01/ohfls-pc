@@ -43,9 +43,11 @@
 					label="操作"
 					max-width="180">
 					<template slot-scope="scope">   <!--这是操作区域功能-->
-						<el-button type="text" >编辑</el-button>
+						<el-button type="text" 
+						@click.native.prevent="editGrade(scope.row)"
+						>编辑</el-button>
 						<el-button
-						@click.native.prevent="deleteRow(scope.$index, tableData)"
+						@click.native.prevent="deleteGrade(scope.$index, scope.row)"
 						type="text"
 						size="small"
 						icon="el-icon-delete">                
@@ -80,7 +82,7 @@
 				</li>
 				<li>
 					<label for="">编号</label>
-					<el-input v-model="grade.name"></el-input>
+					<el-input v-model="grade.NO"></el-input>
 				</li>
 				<li>
 					<label for="">状态</label>
@@ -101,6 +103,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
+import { delSysCode, editSysCode, addSysCode }  from '../../api/public.js'
 export default {
 	props:['is-pop'],
     data() {    
@@ -132,7 +135,51 @@ export default {
 		/**@function 向服务器提交新增年级 */
 		addGrade(){
 			this.isAddGrade = false;
+			let params = {
+				nO:this.grade.NO,
+				name:this.grade.name,
+				state:this.grade.state,
+				remark:this.grade.remark,
+				};
+			addSysCode(params)
 		},
+
+		/**@function 向服务器提交新增年级 
+		 * @param {行数据} row
+		 */
+		editGrade(row){
+			this.isAddGrade = true;
+			this.grade = {
+				name:row.name,
+				NO:row.nO,
+				state:row.state,
+				remark:row.remark
+			}
+		},
+
+		/**
+		 *@function 删除年级
+		 *@param {在当前表格中的行序} rowIndex
+		 *@param {行数据} row
+		 */
+		 deleteGrade(rowIndex,row){			 
+			 let params = {code:row.code,type:35,state:4};
+			 editSysCode(params)
+			 	.then(res => {
+					 if(res.data.success){
+						 params.state = undefined;
+						 delSysCode(params)
+			 				.then(res => {
+								if(res.data.success)
+									this.$message.success(res.data.message);
+								else{
+									this.$message.error('删除年级失败！')
+								}
+				 			})
+					 }
+				 })
+			 
+		 }
 	},
 
 	filters:{
