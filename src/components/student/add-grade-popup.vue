@@ -68,7 +68,7 @@
 				</div> 
 		</el-dialog>
 		<el-dialog
-			title="添加年级"
+			:title="title"
 			:visible.sync="isAddGrade"
 			width="25%"				
 			class="grade-dialog"
@@ -110,7 +110,9 @@ export default {
 		return {
 			//gradeList:[],//年级列表	
 			grade:{},
-			isAddGrade:false,			
+			title:'添加年级',
+			isAddGrade:false,//控制编辑或添加对话框
+			isEdit:false,//判断当前是否编辑模式		
 		};
 	},
 	computed:{
@@ -135,13 +137,21 @@ export default {
 		/**@function 向服务器提交新增年级 */
 		addGrade(){
 			this.isAddGrade = false;
+			this.isEdit = false;
+			this.title = "添加年级";
 			let params = {
 				nO:this.grade.NO,
 				name:this.grade.name,
 				state:this.grade.state,
 				remark:this.grade.remark,
 				};
-			addSysCode(params)
+			if(this.isEdit){
+				editSysCode(params);
+				
+			}else{
+				addSysCode(params)
+			}
+			
 		},
 
 		/**@function 向服务器提交新增年级 
@@ -149,6 +159,8 @@ export default {
 		 */
 		editGrade(row){
 			this.isAddGrade = true;
+			this.title = "编辑年级";
+			this.isEdit = true;
 			this.grade = {
 				name:row.name,
 				NO:row.nO,

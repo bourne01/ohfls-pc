@@ -15,6 +15,7 @@ const state = {
     stuCourseStatus:[],//获取学生选课状态
     electResultList :[],//选课结果
     currentPlanId:null,//当前被选中计划Id
+    currentTermId:null,//当前被选中计划Id
     willCheckPlan:false,//是否要查看选课计划详情（false(默认不查看),true（查看））
 }
 
@@ -37,7 +38,7 @@ const mutations = {
         state.taskList = params;
     },
     [type.GET_ELECT_RESULT](state,params){
-        state.electResList = params; 
+        state.electResultList = params; 
     },
     [type.GET_PLANLIST](state,params){
         state.planList = params; 
@@ -47,6 +48,9 @@ const mutations = {
     },
     [type.SET_CURRENT_PLAN_ID](state,params){
         state.currentPlanId = params;
+    },
+    [type.SET_CURRENT_TERM_ID](state,params){
+        state.currentTermId = params;
     }
 }
 

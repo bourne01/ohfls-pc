@@ -3,7 +3,7 @@
     <el-button type="text" @click="evaluateStudent = true" 
     :class="{evaluated:teacherEvaluate===1,}" 
     >                                                     <!--评价学生的文字按钮-->
-    {{evaluateTxt[evaluate-1]}}</el-button>   <!--点击弹出评价对话框-->
+    {{evaluateTxt}}</el-button>   <!--点击弹出评价对话框-->
     <el-dialog
     title="评价学生"
     :visible.sync="evaluateStudent"
@@ -49,9 +49,30 @@
     data() {
       return {
         evaluateStudent: false,
-        evaluateTxt:['已评价','评价学生'],
+        /* evaluateTxt:['已评价','评价学生'], */
         value1:null
       };
+    },
+    computed:{
+      	evaluateTxt:function(){
+			  console.log('.......');
+			let evaluateText = '';
+			switch(this.evaluate){//2未评(默认) 4普通 6满意 8很好
+				case 8:
+					evaluateText = '很好';
+					break;
+				case 6:
+					evaluateText = '满意';
+					break;
+				case 4:
+					evaluateText = '普通';
+					break;
+				default:
+					evaluateText = '评价学生';
+
+			}	
+
+      }
     },
     methods: {
     }

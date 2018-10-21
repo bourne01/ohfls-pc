@@ -33,3 +33,5 @@ export const GET_PLANLIST ='GET_PLANLIST'
 export const SET_CHECK_PLAN_DETAIL = 'SET_CHECK_PLAN_DETAIL'
 //设置当前选课计划Id
 export const SET_CURRENT_PLAN_ID = 'SET_CURRENT_PLAN_ID'
+//设置当前选课学期Id
+export const SET_CURRENT_TERM_ID = 'SET_CURRENT_TERM_ID'

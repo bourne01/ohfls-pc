@@ -1,13 +1,12 @@
 <template>
     <div class="manage-list">
         <span class="student-num">5/50</span><br>
-        <button class="manage-list-button" @click="openStudentTable = true" >管理名单</button>              <!--选课管理里面的管理名单按钮-->
+        <button class="manage-list-button" @click="isShow=true">管理名单</button>              <!--选课管理里面的管理名单按钮-->
             <el-dialog
                 title="管理名单"
-                :visible.sync="openStudentTable"    
+                :visible.sync="isShow"    
                 width="80%"
                 top="10vh"
-                v-show="isShow"
                 >                                                                                   <!--管理名单弹窗-->
                 <el-dialog
                     title="管理名单"
@@ -24,8 +23,8 @@
                                 <button class="search-button" type="submit"></button>           <!--搜索提交按钮-->
                         </form>
                 </div>
-                    <div class="manage-table">
-                        <student-table-in-course></student-table-in-course>                     <!--管理名单的具体表格组件-->
+                <div class="manage-table">
+                    <student-table-in-course :course-id='courseId'></student-table-in-course>                     <!--管理名单的具体表格组件-->
                 </div>
         </el-dialog>
     </div>
@@ -35,19 +34,14 @@
 import studentTableInCourse from './student-table-in-course.vue'
 import addElectiveStudent from '../../elective-name-list/add-elective-student.vue'
 export default {
+    props:['course-id'],
     components:{
         studentTableInCourse,
         addElectiveStudent
     },
     data(){
         return{
-            openStudentTable: false,
-           isShow: true,
-
-
-
-           
-        
+            isShow: false,         
         }   
     },
     methods:{

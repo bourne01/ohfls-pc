@@ -2,7 +2,7 @@
     <div class="term-plans">
         <div class="term-plan" 
             :class="{active:idx===actIdx}"
-            @click="onClick(idx,plan.xkpId)"
+            @click="onClick(idx,plan.xkpId,plan.termId)"
             v-for="(plan,idx) in plans" :key="idx" v-if="idx<planNums">
             <div>
                 <span class="term-txt">{{plan.termNm|getYear}}</span>
@@ -64,18 +64,18 @@ export default {
         }
     },
     methods:{
-        ...mapMutations('election',['SET_CURRENT_PLAN_ID']),
+        ...mapMutations('election',['SET_CURRENT_PLAN_ID','SET_CURRENT_TERM_ID']),
         /**
          * @function 监听点击某计划事件，然后记录当前被选择计划Id
          * @param {计划显示序号} index
-         * @param {计划编号} planId
+         * @param {计划id} planId
+         * @param {学期id} termId
          */
-        onClick(index,planId){
+        onClick(index,planId,termId){
             this.actIdx = index;
             //this.$router.push({name:'AddElectivePlan',query:{planId}})
             this['SET_CURRENT_PLAN_ID'](planId);
-            console.log('fafa');
-
+            this['SET_CURRENT_TERM_ID'](termId);
         }
     },
     mounted(){
@@ -87,6 +87,7 @@ export default {
                     //this.plans = res.dataList.reverse();
                     if(this.plans.length>0){//当前计划列表非空时      
                         this['SET_CURRENT_PLAN_ID'](this.plans[0].xkpId);
+                        this['SET_CURRENT_TERM_ID'](this.plans[0].termId);
                     }
                 }else{
                     this.$message(res.message)

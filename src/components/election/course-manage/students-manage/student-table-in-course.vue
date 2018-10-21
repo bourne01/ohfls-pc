@@ -1,93 +1,92 @@
 <template>
     <div class="manage-table">
-                    <el-table
-                    :data="manageTable"
-                    border
-                    style="width: 100%"
-                    max-height="520"
-                    @selection-change="handleSelectionChange"
-                    ref="multipleTable"
-                >                                                       <!--管理名单的表格-->
-                    <el-table-column
-                    type="selection"
-                    width="70">
-                    </el-table-column>                      <!--复选框-->
-                    <el-table-column
-                        prop="studentName"
-                        label="姓名"
-                        width="90"
-                        align="left">                                           
-                    </el-table-column>                  <!--学生姓名列-->
-                    <el-table-column
-                        prop="studentID"
-                        label="学号"
-                        width="170">
-                    </el-table-column>                  <!--学号列-->
-                    <el-table-column    
-                        prop="class"
-                        label="班级"
-                        width="220">                        <!--班级列-->
-                    </el-table-column>
-                    <el-table-column
-                        prop="gender"
-                        label="性别"
-                        width="90">
-                    </el-table-column>                  <!--性别列-->
-                    <el-table-column
-                        prop="selectedCourse"
-                        label="所选课程"
-                        width="370"
-                        align="left">
-                    </el-table-column>                    <!--学生选的课程列-->          
-                    <el-table-column
-                        prop="teacherEvaluate"
-                        label="教师评价"
-                        width="120"
-                        :filters="[ { text: '评价学生', value:2},
-                        {text:'已评价',value: 1},]"
-                        :filter-method="filterTeacher"
-                        filter-placement="bottom-end">
-                        >                                           <!--教师评价列-->
-                        <template slot-scope="scope">
-                            <evaluate-student :evaluate="scope.row.teacherEvaluate"></evaluate-student>         <!--评价学生的列-->
-                        </template>
-                    </el-table-column>
-                    <el-table-column
-                        prop="studentEvaluate"
-                        label="学生评价"
-                        width="120"
-                        :filters="[ { text: '已评价', value:'已评价'},
-                        {text:'未评价',value:'未评价'},]"
-                        :filter-method="filterStudent"
-                        filter-placement="bottom-end">
-                        >                                       <!--学生评价列-->
-                    </el-table-column>
-                    <el-table-column
-                        prop="courseStatus"
-                        label="选课状态"
-                        width="120"
-                        :filters="[ { text: '已确认', value:'已确认'},
-                        {text:'未确认',value:'未确认'},]"
-                        :filter-method="filterStatus"
-                        filter-placement="bottom-end">
-                        >
-                    </el-table-column>
-                    <el-table-column
-                        prop="operate"
-                        label="操作"
-                        width="165"
-                    >                               <!--操作列-->
-                        <template slot-scope="scope"> 
-                            <student-details></student-details>                <!--学生详情组件-->
-                                    <el-button type="text" 
-                                    size="mini"
-                                    @click.native.prevent="deleteRow(scope.$index,manageTable)"
-                                    >                                                        <!--删除图标的样式，默认是不可编辑的，当选择器被选中时可被编辑 -->
-                                    <img :src="require('../../../../assets/delete-oc.png')" alt=""  >
-                                    </el-button>
-                                    </template>      
-                                </el-table-column>
-                    </el-table>
+        <el-table
+            :data="resultStudents"
+            border
+            style="width: 100%"
+            max-height="520"
+            @selection-change="handleSelectionChange"
+            ref="multipleTable"
+            >                                                       <!--管理名单的表格-->
+            <el-table-column
+            type="selection"
+            width="70">
+            </el-table-column>                      <!--复选框-->
+            <el-table-column
+                prop="stuName"
+                label="姓名"
+                width="90"
+                align="left">                                           
+            </el-table-column>                  <!--学生姓名列-->
+            <el-table-column
+                prop="stuNO"
+                label="学号"
+                width="170">
+            </el-table-column>                  <!--学号列-->
+            <el-table-column    
+                prop="claName"
+                label="班级"
+                width="220">                        <!--班级列-->
+            </el-table-column>
+            <el-table-column
+                prop="stuSex"
+                label="性别"
+                width="90">
+            </el-table-column>                  <!--性别列-->
+            <el-table-column
+                prop="couName"
+                label="所选课程"
+                width="370"
+                align="left">
+            </el-table-column>                    <!--学生选的课程列-->          
+            <el-table-column
+                
+                label="教师评价"
+                width="120"
+                :filters="[ { text: '评价学生', value:2},
+                {text:'已评价',value: 1},]"
+                :filter-method="filterTeacher"
+                filter-placement="bottom-end">
+                > 
+                <template slot-scope="scope">
+                    <evaluate-student :evaluate="scope.row.evalStu"></evaluate-student>
+                </template>
+            </el-table-column>
+            <el-table-column
+                prop="evalCou"
+                label="学生评价"
+                width="120"
+                :filters="[ { text: '已评价', value:'已评价'},
+                {text:'未评价',value:'未评价'},]"
+                :filter-method="filterStudent"
+                filter-placement="bottom-end">
+                >                                       <!--学生评价列-->
+            </el-table-column>
+            <el-table-column
+                prop="couState"
+                label="选课状态"
+                width="120"
+                :filters="[ { text: '已确认', value:'已确认'},
+                {text:'未确认',value:'未确认'},]"
+                :filter-method="filterStatus"
+                filter-placement="bottom-end">
+                >
+            </el-table-column>
+            <el-table-column
+                prop="operate"
+                label="操作"
+                width="165"><!--操作列-->
+                <template slot-scope="scope"> 
+                    <student-details></student-details>                <!--学生详情组件-->
+                    <el-button type="text" 
+                    size="mini"
+                    @click.native.prevent="deleteRow(scope.$index,manageTable)"
+                    >                                                        <!--删除图标的样式，默认是不可编辑的，当选择器被选中时可被编辑 -->
+                    <img :src="require('../../../../assets/delete-oc.png')" alt=""  >
+                    </el-button>
+                </template>      
+            </el-table-column>
+        </el-table>
         <div class="footer">
             <el-checkbox @change="toggleSelection(manageTable)" class="select-all">全选</el-checkbox>               <!---->
             <div class="amount">已选{{scope}}名</div>
@@ -95,12 +94,12 @@
             <el-button class="footer-button" style="margin-left:1.2%;color:#707079">批量审核</el-button>
             <el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">确认选课</el-button>
             <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="140">
-            :page-size="8"
+                background
+                layout="prev, pager, next"
+                :total="140">
+                :page-size="8"
             </el-pagination>
-   </div>
+        </div>
     </div>
 </template>
 
@@ -108,7 +107,9 @@
 <script>
 import studentDetails from './student-details.vue'
 import evaluateStudent from './evaluate-student.vue'
+import { mapState, mapMutations, mapActions } from 'vuex';
 export default {
+    props:['course-id'],
     components:{
       studentDetails,
       evaluateStudent
@@ -124,62 +125,18 @@ export default {
                 teacherEvaluate:2,
                 studentEvaluate:'未评价',
                 courseStatus:'已确认',
-                },
-                {
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'快乐阅读',
-                teacherEvaluate:1,
-                studentEvaluate:'已评价',
-                courseStatus:'未确认',
-                },
-                {
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'快乐阅读',
-                teacherEvaluate:1,
-                studentEvaluate:'已评价',
-                courseStatus:'未确认',
-                },
-                {
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'1',
-                teacherEvaluate:2,
-                studentEvaluate:'未评价',
-                courseStatus:'未确认',
-                },
-                {
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'快乐阅读',
-                teacherEvaluate:2,
-                studentEvaluate:'已评价',
-                courseStatus:'已确认',
-                },
-                {
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'快乐阅读',
-                teacherEvaluate:1,
-                studentEvaluate:'已评价',
-                courseStatus:'未确认',
-                }],
+                },],
               
         }
-        
+    },
+    computed:{
+        ...mapState('election',{
+           resultStudents:state => state.electResultList,
+           termId:state => state.currentTermId,
+        })
     },
     methods:{
+        ...mapActions('election',['getElectResultList']),
          toggleSelection(rows) {   /* 全选复选框*/
         if (rows) {
           rows.forEach(row => {
@@ -218,8 +175,13 @@ export default {
             message: '已取消删除'
           });          
         });
+        }
+    },
+    mounted(){
+        let url = 'stuCou!query3.action';
+        let params = {selCouId:this.courseId,termId:this.termId};
+        this.getElectResultList({url,params})
     }
-}
 }
 </script>
 <style scoped>
