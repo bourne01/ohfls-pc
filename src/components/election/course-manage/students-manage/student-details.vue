@@ -50,6 +50,9 @@
                     <el-table-column
                     prop="couType"
                     label="类型">
+                    <template slot-scope="scope">
+                        {{scope.row.couType===2?'普通':'自修研习'}}
+                    </template>
                     </el-table-column>   
                     <el-table-column
                     prop="couNO"
@@ -65,6 +68,9 @@
                     prop="state"
                     label="状态"
                     >
+                    <template slot-scope="scope">
+                        {{scope.row.state===2?'未确认':'确认'}}
+                    </template>
                     </el-table-column>
                 </el-table>
             </div>
@@ -167,12 +173,11 @@ export default {
        
     }
     .evaluate-content{      /**老师具体评价的内容*/
-        min-height: 50px;
+        min-height: 80px;
         width: 100%;
         background-color: aliceblue;
         float: left;
         clear: left;
-        max-height: 80px;
     }
 </style>
 

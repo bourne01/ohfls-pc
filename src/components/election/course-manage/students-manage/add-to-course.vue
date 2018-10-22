@@ -15,8 +15,6 @@
                 </el-dialog>
                 <div class="manage-header">                                          <!--管理名单的头部部分-->
                    <add-elective-student></add-elective-student>        <!--添加学生组件-->
-                    <el-button class="export-list-button">导出选课名单</el-button>      
-                    <el-button class="check-excellent">查看优秀学生优先选择</el-button>
                         <form action="#" class="search-area">
                                 <input type="text" class="search-course" placeholder="查询课程">
                                 <input type="text" placeholder="查询姓名" class="search-name">

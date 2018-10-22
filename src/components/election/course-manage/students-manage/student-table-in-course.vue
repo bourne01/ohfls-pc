@@ -40,11 +40,11 @@
                 align="left">
             </el-table-column>                    <!--学生选的课程列-->          
             <el-table-column
-                
+                prop="evalStu"                
                 label="教师评价"
                 width="120"
-                :filters="[ { text: '评价学生', value:2},
-                {text:'已评价',value: 1},]"
+                :filters="[ 
+                    {text: '评价学生', value:0}]"
                 :filter-method="filterTeacher"
                 filter-placement="bottom-end">
                 > 
@@ -56,21 +56,27 @@
                 prop="evalCou"
                 label="学生评价"
                 width="120"
-                :filters="[ { text: '已评价', value:1},
-                {text:'未评价',value:0},]"
+                :filters="[{text:'未评价',value:0},]"
                 :filter-method="filterStudent"
                 filter-placement="bottom-end">
-                >                                       <!--学生评价列-->
+                >
+                <template slot-scope="scope">
+                    <span :style="{color:scope.row.evalCou<4?'#ff7a7b':''}">
+                        {{scope.row.evalCou|convertValueToName}}</span>
+                </template>
             </el-table-column>
             <el-table-column
-                prop="couState"
+                prop="state"
                 label="选课状态"
                 width="120"
-                :filters="[ { text: '已确认', value:'已确认'},
-                {text:'未确认',value:'未确认'},]"
-                :filter-method="filterStatus"
+                :filters="[{text:'未确认',value:2},]"
+                :filter-method="filterState"
                 filter-placement="bottom-end">
                 >
+                <template slot-scope="scope">
+                    <span :style="{color:scope.row.state ===3?'#0d714a':'#ff7a7b'}">
+                        {{scope.row.state ===3?'确认':'未确认'}}</span>
+                </template>
             </el-table-column>
             <el-table-column
                 prop="operate"
@@ -80,7 +86,7 @@
                     <student-details :student="scope.row"></student-details>                <!--学生详情组件-->
                     <el-button type="text" 
                     size="mini"
-                    @click.native.prevent="deleteRow(scope.$index,manageTable)"
+                    @click.native.prevent="deleteResult(scope.row.stuCouId)"
                     >                                                        <!--删除图标的样式，默认是不可编辑的，当选择器被选中时可被编辑 -->
                     <img :src="require('../../../../assets/delete-oc.png')" alt=""  >
                     </el-button>
@@ -108,6 +114,7 @@
 import studentDetails from './student-details.vue'
 import evaluateStudent from './evaluate-student.vue'
 import { mapState, mapMutations, mapActions } from 'vuex';
+import { delElectResults, changeStuCouState } from '../../../../api/election';
 export default {
     props:['course-id'],
     components:{
@@ -115,18 +122,31 @@ export default {
       evaluateStudent
     },
     data(){
-        return{
-                manageTable:[{
-                class:'2016级/小学一（5）班',
-                studentName:'陈力豪',
-                studentID:'120200405',
-                gender:'男',
-                selectedCourse:'快乐阅读',
-                teacherEvaluate:2,
-                studentEvaluate:'未评价',
-                courseStatus:'已确认',
-                },],
-              
+        return{                              
+        }
+    },
+    filters:{
+        /**
+         * @function 把给定数值变成对应名称
+         * @param {给定的数值} value
+         */
+        convertValueToName(value){
+            //2未评(默认) 4普通 6满意 8很好 代码
+            let name = '';
+            switch(value){
+                case 4:
+                    name = '普通';
+                    break;
+                case 6:
+                    name = '满意';
+                    break;
+                case 8:
+                    name = '很好';
+                    break;
+                default:
+                    name = '未评价';
+            }
+            return name;
         }
     },
     computed:{
@@ -146,38 +166,36 @@ export default {
           this.$refs.multipleTable.clearSelection();
         }
         },
-       handleSelectionChange(val) {
-        this.multipleSelection = val;
+        handleSelectionChange(val) {
+            this.multipleSelection = val;
         },
+        /**@function 过滤教师对学生已评价的记录，找出未评价学生 */
         filterTeacher(value, row) {
-        return row.teacherEvaluate === value;       //筛选教师评价的列表数据
+            return row.evalStu === value
         },
-          filterStudent(value, row) {
-        return row.studentEvaluate === value;       //筛选教师评价的列表数据
+        /**@function 过滤已学生已作出评价的记录，找出学生未评价的记录 */
+        filterStudent(value, row) {
+            return row.evalCou < 4;       //筛选教师评价的列表数据
         },
-          filterStatus(value, row) {
-        return row.courseStatus === value;       //筛选教师评价的列表数据
+        /**@function 过滤已被确认选课的记录，找出未确认的记录 */
+        filterState(value, row) {
+            return row.state === value;       //筛选教师评价的列表数据
         },
-         deleteRow(index, rows) {            //删除按钮的弹框，并进行进一步的确认或者取消
-                this.$confirm('确认删除该课程吗?', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            })
-            .then(() => { 
-                rows.splice(index, 1);
-                this.$message({
-                    type: 'success',
-                    message: '删除成功!'
-                });
-            })
-            .catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: '已取消删除'
-                });          
-            });
+        /**
+         * @function 删除选定的选课结果
+         * @param {学生选课Id,可以是单个或多个，多个用,连接} studentCourseIds
+         */
+        deleteResult(studentCourseIds){  
+            let params = {stuCouIds:studentCourseIds,state:2}          
+            changeStuCouState(params)
+                .then(res => {
+                    if(res.data.success){
+                        delElectResults({stuCouIds:studentCourseIds}) 
+                    }
+                })
+            
         }
+        
     },
     mounted(){
         let url = 'stuCou!query3.action';

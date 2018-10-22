@@ -161,17 +161,17 @@ export const addElectResult = (params) => {
 /**
  * @function 编辑选课结果（包含修改任务状态）
  */
-export const editElectResult = (params) => {
-    return http(`${baseURL}/xkTask!edit.action`,{params});
-}
+/* export const editElectResult = (params) => {
+    return http(`${baseURL}/stuCou!chState.action`,{params});
+} */
 /**
  * @function 删除选课结果
  */
 export const delElectResults = (params) => {
-    return http(`${baseURL}/xkTask!del.action`,{params});
+    return http(`${baseURL}/stuCou!del.action`,{params});
 }
 /**
- * @function 状态控制(控制教师评价与学生评价)
+ * @function 状态控制(选课状态、控制教师评价与学生评价)
  */
 export const changeStuCouState = (params) => {
     return http(`${baseURL}/stuCou!chState.action`,{params});

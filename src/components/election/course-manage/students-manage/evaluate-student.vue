@@ -1,6 +1,6 @@
 <template>
   	<div class="evaluate-student">    
-		<el-button type="text" @click="isShow=true" 		
+		<el-button type="text" @click="onClick" :class="{evaluate:student.evalStu<=2}" 		
 		>                                                     <!--评价学生的文字按钮-->
 		{{evaluateTxt}}</el-button>   <!--点击弹出评价对话框-->
 		<el-dialog
@@ -17,7 +17,7 @@
 			<div class="evaluate-rate"> <!--评定的星级-->
 				<div style="float:left;margin-bottom:5px;">评价学生</div>
 				<el-rate
-					v-model="credit"
+					v-model="student.creditCurCou"
 					:max="3"
 					show-text
 					:texts="[ '良好', '优秀','特优']"
@@ -27,11 +27,11 @@
 			</div>
 			<div class="score">        <!--评定的学分--> 
 			<div style="float:left">取得分</div>
-			<input type="text" class="get-score" disabled v-model="credit">   <!--评分的输入框--> 
+			<input type="text" class="get-score" disabled v-model="student.creditCurCou">   <!--评分的输入框--> 
 			</div>
 			<div class="comment">   <!--评语内容-->
 			<div  style="float:left;margin-bottom:10px">评语内容</div>
-			<textarea  class="comment-txt" v-model="evaluateContent"></textarea> <!--写评语内容的文本域-->
+			<textarea  class="comment-txt" v-model="student.evalStuTxt"></textarea> <!--写评语内容的文本域-->
 			</div>
 			<div class="submit-evaluate">         <!--提交评价的按钮-->
 				<el-button class="submit" @click="submit">提交评价</el-button>
@@ -57,7 +57,7 @@ export default {
       	evaluateTxt:function(){
 			  console.log(this.student);
 			let evaluateText = '';
-			switch(this.student.evalStu){//2未评(默认) 4普通 6满意 8很好
+			/* switch(this.student.evalStu){//2未评(默认) 4普通 6满意 8很好
 				case 8:
 					evaluateText = '很好';
 					break;
@@ -69,11 +69,26 @@ export default {
 					break;
 				default:
 					evaluateText = '评价学生';
-			}	
+			} */	
+			if(this.student.evalStu > 2){
+				evaluateText = '已评价';
+			}else{
+				evaluateText = '评价学生'
+			}
 			return evaluateText;
       }
     },
     methods: {
+		/**
+		 * @function 监听点击教师评价内容，如果是未评价学生
+		 * 则弹出评价对话框，否则不作响应
+		 */
+		onClick(){this.isShow = true;	
+			if(this.student.evalStu <= 2){
+				
+			}
+		},
+
 		/**
 		 * @function 监听提交点击事件，向服务器提交对学生评语
 		 */
@@ -105,6 +120,9 @@ export default {
 <style scoped>
 	.evaluate-student .el-button{
 		font-size:12px;
+	}
+	.evaluate{
+		color:#ff7a7b;
 	}
 	.student-name{    /*姓名的样式*/
 		float: left;
