@@ -3,99 +3,133 @@
         <el-button type="text" 
         size="small"
         class="details" 
-        @click="studentDetails = true"
+        @click="isShow=true"
         >详情</el-button> <!--点击查看该学生的详细信息-->
         <el-dialog       
-        title="查看详情"
-        :visible.sync="studentDetails"
-        width="35%"
-        :before-close="handleClose">
-        <div class="student-message">       <!--学生的详细信息--> 
-            <div style="float:left;margin-bottom:5px;">学生信息</div>
-            <el-table               
-            :data="tableData"
-            border
-            style="width: 100%;clear:left"
-            >       <!--学生的详细信息表格--> 
-                <el-table-column
-                prop="name"
-                label="姓名"
-               >
-                </el-table-column>
-                <el-table-column
-                prop="ID"
-                label="学号"
-                >
-                </el-table-column>
-                <el-table-column
-                prop="gender"
-                label="性别">
-                </el-table-column>
-            </el-table>
-        </div>
-        <div class="selected-course">
-              <div style="float:left;margin-bottom:5px;">所选课程</div>
-            <el-table               
-            :data="tableData"
-            border
-            style="width: 100%;clear:left"
-            >       <!--所选课程信息的表格--> 
-                <el-table-column
-                prop="name"
-                label="姓名"
-                >
-                </el-table-column>
-                <el-table-column
-                prop="type"
-                label="类型">
-                </el-table-column>   
-                <el-table-column
-                prop="numbering"
-                label="编号"
-                >
-                </el-table-column>
-                 <el-table-column
-                prop="credit"
-                label="学分"
-                >
-                </el-table-column>
-                 <el-table-column
-                prop="status"
-                label="状态"
-                >
-                </el-table-column>
-            </el-table>
-        </div>
-        <div class="teacher-evaluate">
-             <div style="float:left;margin-bottom:5px;">所选课程</div>
-            <div class="rate">      <!--评分-->
-            <el-rate
-            v-model="value1"
-            :max="3"
-            show-text
-            :texts="['一般', '良好', '优秀']"
-            >
-            </el-rate>
-            </div>
-            <div class="evaluate-time">
-                评价时间
-            </div>
-            <div class="evaluate-content">      <!--里面是具体的评价内容--> 
+            title="查看详情"
+            :visible="isShow"
+            width="35%"
+            :modal="false"
             
+            :before-close="handleClose">
+            <div class="student-message">       <!--学生的详细信息--> 
+                <div style="float:left;margin-bottom:5px;">学生信息</div>
+                <el-table               
+                :data="[student]"
+                border
+                style="width: 100%;clear:left"
+                >       <!--学生的详细信息表格--> 
+                    <el-table-column
+                    prop="stuName"
+                    label="姓名"
+                >
+                    </el-table-column>
+                    <el-table-column
+                    prop="stuNO"
+                    label="学号"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                    prop="stuSex"
+                    label="性别">
+                    </el-table-column>
+                </el-table>
             </div>
-        </div>
-    </el-dialog>         <!--详细信息的弹框--> 
+            <div class="selected-course">
+                <div style="float:left;margin-bottom:5px;">所选课程</div>
+                <el-table               
+                :data="[student]"
+                border
+                style="width: 100%;clear:left"
+                >       <!--所选课程信息的表格--> 
+                    <el-table-column
+                    prop="couName"
+                    label="课程名称"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                    prop="couType"
+                    label="类型">
+                    </el-table-column>   
+                    <el-table-column
+                    prop="couNO"
+                    label="编号"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                    prop="creditCurCou"
+                    label="学分"
+                    >
+                    </el-table-column>
+                    <el-table-column
+                    prop="state"
+                    label="状态"
+                    >
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div class="teacher-evaluate">
+                <div style="float:left;margin-bottom:5px;">教师评语</div>
+                <div class="rate">
+                <el-rate
+                    v-model="rate"
+                    :max="3"
+                    :show-text="true"
+                    disabled
+                    :texts="[ '良好', '优秀','特优']"
+                >
+                </el-rate>
+                </div>
+                <div class="evaluate-time">
+                    {{student.evalStuTime}}
+                </div>
+                <div class="evaluate-content">      <!--里面是具体的评价内容--> 
+                
+                </div>
+            </div>
+        </el-dialog>         <!--详细信息的弹框--> 
         </div>
 </template>
 
 <script>
 export default {
+    props:['student'],
     data(){
         return{
-            studentDetails: false,
+            isShow: false,
             value1: null,   
+            tableData:{},
+            evaluateTime:'',
         }
         
+    },
+    computed:{
+        rate:{
+            get:function(){
+                let evalStuCode = '';
+                switch(this.student.evalStu){
+                    case 6:
+                        evalStuCode = 1;
+                        break;
+                    case 8:
+                        evalStuCode = 2;
+                        break;
+                    case 10:
+                        evalStuCode = 3;
+                        break;
+                }
+                return evalStuCode.toString();
+                }
+            },
+            set:function(val){
+
+            }
+            
+    },
+    methods:{
+        handleClose(){
+            this.isShow = false;
+        }
     }
 }
 </script>
@@ -133,7 +167,7 @@ export default {
        
     }
     .evaluate-content{      /**老师具体评价的内容*/
-        height: 40px;
+        min-height: 50px;
         width: 100%;
         background-color: aliceblue;
         float: left;

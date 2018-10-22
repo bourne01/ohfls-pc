@@ -49,15 +49,15 @@
                 filter-placement="bottom-end">
                 > 
                 <template slot-scope="scope">
-                    <evaluate-student :evaluate="scope.row.evalStu"></evaluate-student>
+                    <evaluate-student :student="scope.row"></evaluate-student>
                 </template>
             </el-table-column>
             <el-table-column
                 prop="evalCou"
                 label="学生评价"
                 width="120"
-                :filters="[ { text: '已评价', value:'已评价'},
-                {text:'未评价',value:'未评价'},]"
+                :filters="[ { text: '已评价', value:1},
+                {text:'未评价',value:0},]"
                 :filter-method="filterStudent"
                 filter-placement="bottom-end">
                 >                                       <!--学生评价列-->
@@ -77,7 +77,7 @@
                 label="操作"
                 width="165"><!--操作列-->
                 <template slot-scope="scope"> 
-                    <student-details></student-details>                <!--学生详情组件-->
+                    <student-details :student="scope.row"></student-details>                <!--学生详情组件-->
                     <el-button type="text" 
                     size="mini"
                     @click.native.prevent="deleteRow(scope.$index,manageTable)"
@@ -89,7 +89,7 @@
         </el-table>
         <div class="footer">
             <el-checkbox @change="toggleSelection(manageTable)" class="select-all">全选</el-checkbox>               <!---->
-            <div class="amount">已选{{scope}}名</div>
+            <div class="amount">已选{{24}}名</div>
             <el-button class="footer-button" style="margin-left:2.2%;color:#ff7a7b">删除</el-button>
             <el-button class="footer-button" style="margin-left:1.2%;color:#707079">批量审核</el-button>
             <el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">确认选课</el-button>
@@ -159,22 +159,24 @@ export default {
         return row.courseStatus === value;       //筛选教师评价的列表数据
         },
          deleteRow(index, rows) {            //删除按钮的弹框，并进行进一步的确认或者取消
-        this.$confirm('确认删除该课程吗?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => { 
-          rows.splice(index, 1);
-          this.$message({
-            type: 'success',
-            message: '删除成功!'
-          });
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
-          });          
-        });
+                this.$confirm('确认删除该课程吗?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            })
+            .then(() => { 
+                rows.splice(index, 1);
+                this.$message({
+                    type: 'success',
+                    message: '删除成功!'
+                });
+            })
+            .catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
         }
     },
     mounted(){
