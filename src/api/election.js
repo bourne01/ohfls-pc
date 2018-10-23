@@ -15,7 +15,13 @@ export const getCourseList = (url,params) => {
  * @function 导出课程信息
  */
 export const exportCourse = (params) => {
-    return http(`${baseURL}/selCou!export.action`,params);
+    return http({
+            method:'post',
+            url:`${baseURL}/selCou!export.action`,
+            data:require('qs').stringify(params),
+            responseType: 'blob'
+            }
+        );
 }
 /**
  * @function 我的课程列表,使用者：开课教师、合作机构

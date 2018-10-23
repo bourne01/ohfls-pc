@@ -10,15 +10,14 @@
                     </el-button>
                     <el-button 
                         type="primary"
-                        @click="goAddCourse" 
+                        @click="exportCourses" 
                         icon="el-icon-download"
                         class="add-course-button">导出课程
                     </el-button>
                 </div> 
                 <form class="search-course">
                     <input type="text" placeholder="输入课程名称" class="search-style">                         
-                    <button class="search-button"></button>
-                    
+                    <button class="search-button"></button>                    
                 </form>
 
             <el-select v-model="searCourse" filterable placeholder="请选择" size="small" >          <!--搜索课程-->
@@ -36,6 +35,8 @@
 
 <script>
     import CourseTable from './course-table.vue' 
+import { exportCourse } from '../../../api/election';
+import { mapState } from 'vuex';
 export default {
  components:{
         CourseTable,
@@ -49,6 +50,11 @@ export default {
             options:[{}]
         }     
     },
+    computed:{
+        ...mapState('election',{
+            currentPlanId:state => state.currentPlanId,
+        })
+    },
     methods:{
          handleClick(tab, event) {
         console.log(tab, event);
@@ -56,6 +62,22 @@ export default {
       /**@function 跳转到新增课程页面 */
       goAddCourse(){
           this.$router.push('/home/add-course');
+      },
+      /**@function 导出课程 */
+      exportCourses(){
+          exportCourse({xkpId:this.currentPlanId})
+            .then(res => {
+                if (!res.data) {
+                    return
+                }
+                let url = window.URL.createObjectURL(new Blob([res.data]))
+                let link = document.createElement('a')
+                link.style.display = 'none'
+                link.href = url
+                link.setAttribute('download', '待选课程.xls')
+                document.body.appendChild(link)
+                link.click()
+            });
       },
     },
     created(){

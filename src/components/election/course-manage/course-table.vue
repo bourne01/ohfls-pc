@@ -85,13 +85,21 @@
 			class="footer-button" 
 			style="margin-left:2.2%;color:#ff7a7b"
 			@click.native.prevent="deleteCourses">批量删除</el-button>
-		<el-button class="footer-button" style="margin-left:1.2%;color:rgb(93,156,253)" >批量审核</el-button>
-		<el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">批量确认</el-button>
+		<el-button 
+			class="footer-button" 
+			style="margin-left:1.2%;color:rgb(93,156,253)"
+			@click.native.prevent="handleByBatch('audit')">批量审核</el-button>
+		<el-button 
+			class="footer-button" 
+			style="margin-left:1.2%;color:#14b25a"
+			@click.native.prevent="handleByBatch('done')">批量完成</el-button>
 		<el-pagination
-		background
-		layout="prev, pager, next"
-		:total="140">
-		:page-size="8"
+			background
+			layout="prev, pager, next"
+			:total="total"
+			:page-size='pageSize'
+			@current-change="onCurrentChange"
+			>
 		</el-pagination>    <!--翻页的-->
 	</div>
   </div>
@@ -122,6 +130,8 @@ export default {
 			{ text: '已完成', value: 5 },],
 		
 		courseIds:'',//被选中课程的Id字符串，以,隔开
+		total:1,//总共有多少课程数
+		pageSize:10,//每页放多少门课程
 		}
   	},
 
@@ -156,14 +166,18 @@ export default {
     handleCommand(command) {
       	this.$message('click on item ' + command);
 	  },
-	
+	/**
+	 * @function 监听当前页码变化事件
+	 */
+	onCurrentChange(val){
+		this.getCourseList((val-1)*this.pageSize)
+	},	
 	/**
 	 * @function 监听删除课程事件,然后根据Id删掉所选课程
 	 */
 	deleteCourses(){       
 		this.$confirm('确认删除该课程吗?', '提示', {confirmButtonText: '确定',cancelButtonText: '取消',type: 'warning'})
 			.then(() => {
-				console.log('yyyyyyyyyyy');
 				changeCouState({selCouIds:this.courseIds,couState:5})
 					.then(res => {
 						if(res.data.success){
@@ -204,13 +218,11 @@ export default {
 									type:'error',
 									message:'发生未知错误，请联系管理员！'
 								})
-								console.log(res.message)
 							}
 						}
 					})
 			})
 			.catch(() => {
-				console.log('afalfajlfjalfjal');
 				this.$message({
 					type: 'info',
 					message: '已取消删除'
@@ -221,12 +233,44 @@ export default {
 	/**
 	 * @function 监听来自子组件 action.vue的事件'update-course-list'
 	 */
-	getCourseList(){
+	getCourseList(start=0,limit=10){
 		let url = 'selCou!query2.action';
-		let params = {start:0,limit:10,parCouId:-1,xkpId:this.currentPlanId};
+		let params = {start,limit,parCouId:-1,xkpId:this.currentPlanId};
 		this.getCourseTable({url,params})
+			.then(res => {
+				this.total = res.total;
+			})
 	},
-    ...mapActions('election',['getCourseTable','getElectResultList','removeCourse',])
+
+	/**
+	 * @function 批量处理(审核与完成)
+	 * @param {批处理类型} type
+	 */
+	handleByBatch(type){
+		let params = {};
+		if(type === 'audit'){//批量审核
+			params = {
+				selCouIds:this.courseIds,
+				audit:2,//审核状态 1未审核(默认) 2已审核
+			}
+		}else{//批量设置课程状态为完成
+			params = {
+				selCouIds:this.courseIds,
+				couState:5,//开课状态 2开启(可选)(默认) 3关闭(不可选) 4确认 5完成
+			}
+		}
+		changeCouState(params)
+			.then(res => {
+				if(res.data.success){
+					this.$message.success('批量操作成功！')
+					this.getCourseList();
+				}else{
+					this.$message.error('批量操作失败，请重试！');
+				}
+			})
+	},
+	...mapActions('election',['getCourseTable','getElectResultList','removeCourse',]),
+	
   },
 
   filters:{
