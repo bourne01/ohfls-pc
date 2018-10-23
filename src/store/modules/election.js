@@ -88,7 +88,7 @@ const actions = {
         return new Promise((resolve,reject) =>{
             delCourse(params)
                 .then(res =>{
-                    dispatch('getCourseTable');
+                    //dispatch('getCourseTable');
                     resolve(res.data);
                 })
                 .catch(err => {

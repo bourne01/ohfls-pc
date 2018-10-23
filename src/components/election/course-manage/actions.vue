@@ -2,9 +2,7 @@
     <div>
         <el-button type="text" size="small" class="edit" @click="edit" >编辑</el-button>
         <el-button type="text" size="small" @click="addSubCourse">添加子课程</el-button>
-        <el-button type="text" size="mini"  @click="deleteCourse" icon="el-icon-delete">                                                       
-            
-         </el-button>
+        <el-button type="text" size="mini"  @click="deleteCourse" icon="el-icon-delete"></el-button>
          <sub-course-popup :sub-course-popup="scPopup"></sub-course-popup>
     </div>
 </template>
@@ -68,42 +66,43 @@ export default {
                             .then(res => {
                                 if(res.data.success){
                                     this.removeCourse({selCouIds:courseId})
-                                    .then(res => {
-                                        if(res.data.success)
-                                            this.$message({
-                                            type: 'success',
-                                            message: '删除成功!'
-                                            })
-                                        else{
-                                            if(res.data.type == 1){
+                                        .then(res => {
+                                            if(res.success){
                                                 this.$message({
-                                                    type:'error',
-                                                    message:res.data.message
-                                                })
+                                                        type: 'success',
+                                                        message: res.message
+                                                    });
+                                                    this.$emit('upadte-course-list');
                                             }else{
-                                                this.$message({
-                                                    type:'error',
-                                                    message:'发生未知错误，请联系管理员！'
-                                                })
-                                                console.log(res.data.message)
-                                            }
-                                        }                        
-                                    })
-                                    .catch(err => {
-                                        xhrErrHandler(err,this.$message,this.$router)
-                                    })
+                                                if(res.type == 1){
+                                                    this.$message({
+                                                        type:'error',
+                                                        message:res.message
+                                                    })
+                                                }else{
+                                                    this.$message({
+                                                        type:'error',
+                                                        message:'发生未知错误，请联系管理员！'
+                                                    })
+                                                    console.log(res.message)
+                                                }
+                                            }                        
+                                        })
+                                        .catch(err => {
+                                            xhrErrHandler(err,this.$message,this.$router)
+                                        })
                                 }else{
                                     if(res.data.type == 1){
                                         this.$message({
                                             type:'error',
-                                            message:res.data.message
+                                            message:res.message
                                         })
                                     }else{
                                         this.$message({
                                             type:'error',
                                             message:'发生未知错误，请联系管理员！'
                                         })
-                                        console.log(res.data.message)
+                                        console.log(res.message)
                                     }
                                 }
                             })

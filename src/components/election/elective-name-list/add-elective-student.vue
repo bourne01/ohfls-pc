@@ -11,32 +11,33 @@
             width="26%"
             top="12vh"
             ref="multipleTable"
+            :modal="false"
             >
-                <el-select v-model="selectedGrade" filterable placeholder=全部年级 size="mini">
+                <el-select v-model="student.grade" filterable placeholder=全部年级 size="mini">
                     <el-option
-                        v-for="item in options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value">
+                        v-for="item in gradeList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id">
                     </el-option>
                 </el-select>
-                 <el-select v-model="selectedClass" filterable placeholder="全部班级" size="mini">
+                 <el-select v-model="student.class" filterable placeholder="全部班级" size="mini">
                     <el-option
-                        v-for="item in options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value">
+                        v-for="item in classList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id">
                     </el-option>
                 </el-select>
                 <form action="#" class="search-area">
-                    <input type="text" class="search-id" placeholder="查询学号">
-                    <input type="text" placeholder="查询姓名" class="search-name">
-                    <button class="search-button"></button>
+                    <input type="text" class="search-id" placeholder="查询学号" v-model="student.NO">
+                    <input type="text" placeholder="查询姓名" class="search-name" v-model="student.name">
+                    <button class="search-button" @click="getStudentList"></button>
                  </form>
                 <div class="student-table">
                     <el-table
                         ref="multipleTable"
-                        :data="studentTable"
+                        :data="studentList"
                         tooltip-effect="dark"
                         style="width: 100%"
                         @selection-change="handleSelectionChange"
@@ -47,19 +48,18 @@
                         width="40">
                         </el-table-column>
                         <el-table-column
-                        label="姓名"
-                        width="159"
-                        align="left"
-                        >
-                        <template slot-scope="scope">{{ scope.row.name }}</template>
+                            prop="stuName"
+                            label="姓名"
+                            width="159"                            
+                        >                        
                         </el-table-column>
                         <el-table-column
-                        prop="ID"
+                        prop="stuNO"
                         label="学号"
                         width="175">
                         </el-table-column>
                         <el-table-column
-                        prop="address"
+                        prop="stuSex"
                         label="性别"
                         width="104"
                         show-overflow-tooltip>
@@ -76,39 +76,18 @@
 
 
 <script>
+import { getStudents } from '../../../api/student.js'
+import { getSelector } from '../../../api/public.js'
 export default {
     data(){
         return{
-            selectedGrade:'',
-            selectedClass:'',
+            student:{class:undefined,class:undefined},//学生对象
             addStudent:false,
-            studentTable: [{
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        }, {
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        }, {
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        }, {
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        }, {
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        }, {
-          ID: '123456789',
-          name: '黄书豪',
-          address: '男'
-        },],
-        multipleSelection: [],
-        options:[{}]
+            studentList:[],//学生列表
+            gradeList:[],//年级列表
+            classList:[],//班级列表
+            multipleSelection: [],
+            options:[{}]
         }
         
         
@@ -127,7 +106,52 @@ export default {
        handleSelectionChange(val) {
         this.multipleSelection = val;
         },
+
+        /**
+         * @function 监听搜算按钮，获取学生列表
+         */
+        getStudentList(){
+            let url = 'stu!query.action';
+            let params = {
+                stuGrade:this.student.grade,
+                stuClaId:this.student.class,
+                stuName:this.student.name,
+                stuNO:this.student.NO
+            };
+            getStudents(url,params)
+                .then(res => {
+                    console.log(res.data);
+                    if(res.data.success){
+
+                        this.studentList = res.data.dataList;
+                    }
+                })
+        }
     },
+    mounted(){
+        /**@function 获取年级列表 */
+        let params = {
+            f:'uxCode',
+            codeType:35,
+            simple:0
+        };
+        getSelector(params)
+            .then(res => {
+                this.gradeList = res.data.dataList;
+                
+            }) 
+        /**@function 获取班级列表 */
+        params = {
+            f:'uxCla',
+            simple:0
+        };
+        getSelector(params)
+            .then(res => {
+                this.classList = res.data.dataList;
+                
+            }) 
+        
+    }
    
 
 }

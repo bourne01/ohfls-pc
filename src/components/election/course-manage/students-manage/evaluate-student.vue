@@ -93,8 +93,8 @@ export default {
 		 * @function 监听提交点击事件，向服务器提交对学生评语
 		 */
 		submit(){
-			let tearchEvaluationCode = 2;//老师评价 系统代码81 2未评(默认) 4差评 6及格 8良好 10优秀
-			switch(this.credit){
+			let tearchEvaluationCode = undefined;//老师评价 系统代码81 2未评(默认) 4差评 6及格 8良好 10优秀
+			switch(this.student.creditCurCou){
 				case 1:
 					tearchEvaluationCode = 6;
 					break;
@@ -110,9 +110,21 @@ export default {
 			let params = {
 				stuCouId:this.student.stuCouId,
 				evalStu:tearchEvaluationCode,
-				evalStuTxt:this.evaluateContent
+				evalStuTxt:this.student.evalStuTxt
 			};
-			evaluateStudent(params);
+			evaluateStudent(params)
+				.then(res => {
+					if(res.data.success){
+						this.$message.success(res.data.message);
+						this.$emit('update-result');
+					}else{
+						this.$message.error(res.data.message);
+					}
+					this.isShow = false;
+				})
+				.catch(err => {
+					this.isShow = false;
+				})
 		},
     }
   };

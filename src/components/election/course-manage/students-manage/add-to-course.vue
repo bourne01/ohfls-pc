@@ -1,29 +1,29 @@
 <template>
     <div class="manage-list">
-        <span class="student-num">5/50</span><br>
+        <span class="student-num">{{course.boyNum+course.girlNum}}/{{course.manMax}}</span><br>
         <button class="manage-list-button" @click="isShow=true">管理名单</button>              <!--选课管理里面的管理名单按钮-->
+        <el-dialog
+            title="管理名单"
+            :visible.sync="isShow"    
+            width="80%"
+            top="10vh"
+            >                                                                                   <!--管理名单弹窗-->
             <el-dialog
                 title="管理名单"
-                :visible.sync="isShow"    
-                width="80%"
-                top="10vh"
-                >                                                                                   <!--管理名单弹窗-->
-                <el-dialog
-                    title="管理名单"
-                >
-                <add-elective-student></add-elective-student>
-                </el-dialog>
-                <div class="manage-header">                                          <!--管理名单的头部部分-->
-                   <add-elective-student></add-elective-student>        <!--添加学生组件-->
-                        <form action="#" class="search-area">
-                                <input type="text" class="search-course" placeholder="查询课程">
-                                <input type="text" placeholder="查询姓名" class="search-name">
-                                <button class="search-button" type="submit"></button>           <!--搜索提交按钮-->
-                        </form>
-                </div>
-                <div class="manage-table">
-                    <student-table-in-course :course-id='courseId'></student-table-in-course>                     <!--管理名单的具体表格组件-->
-                </div>
+            >
+            <add-elective-student></add-elective-student>
+            </el-dialog>
+            <div class="manage-header">                                          <!--管理名单的头部部分-->
+                <add-elective-student></add-elective-student>        <!--添加学生组件-->
+                    <form action="#" class="search-area">
+                            <input type="text" class="search-course" placeholder="查询课程">
+                            <input type="text" placeholder="查询姓名" class="search-name">
+                            <button class="search-button" type="submit"></button>           <!--搜索提交按钮-->
+                    </form>
+            </div>
+            <div class="manage-table">
+                <student-table-in-course :course-id='course.selCouId'></student-table-in-course>                     <!--管理名单的具体表格组件-->
+            </div>
         </el-dialog>
     </div>
 </template>
@@ -32,7 +32,7 @@
 import studentTableInCourse from './student-table-in-course.vue'
 import addElectiveStudent from '../../elective-name-list/add-elective-student.vue'
 export default {
-    props:['course-id'],
+    props:['course'],
     components:{
         studentTableInCourse,
         addElectiveStudent

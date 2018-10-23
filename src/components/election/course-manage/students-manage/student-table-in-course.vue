@@ -4,13 +4,13 @@
             :data="resultStudents"
             border
             style="width: 100%"
-            max-height="520"
+            max-height="600"
             @selection-change="handleSelectionChange"
             ref="multipleTable"
             >                                                       <!--管理名单的表格-->
             <el-table-column
             type="selection"
-            width="70">
+            width="40">
             </el-table-column>                      <!--复选框-->
             <el-table-column
                 prop="stuName"
@@ -21,12 +21,12 @@
             <el-table-column
                 prop="stuNO"
                 label="学号"
-                width="170">
+                min-width="110">
             </el-table-column>                  <!--学号列-->
             <el-table-column    
                 prop="claName"
                 label="班级"
-                width="220">                        <!--班级列-->
+                min-width="150">                        <!--班级列-->
             </el-table-column>
             <el-table-column
                 prop="stuSex"
@@ -36,26 +36,26 @@
             <el-table-column
                 prop="couName"
                 label="所选课程"
-                width="370"
+                min-width="170"
                 align="left">
             </el-table-column>                    <!--学生选的课程列-->          
             <el-table-column
                 prop="evalStu"                
                 label="教师评价"
-                width="120"
+                min-width="100"
                 :filters="[ 
                     {text: '评价学生', value:0}]"
                 :filter-method="filterTeacher"
                 filter-placement="bottom-end">
                 > 
                 <template slot-scope="scope">
-                    <evaluate-student :student="scope.row"></evaluate-student>
+                    <evaluate-student :student="scope.row" @update-result="updateResultList"></evaluate-student>
                 </template>
             </el-table-column>
             <el-table-column
                 prop="evalCou"
                 label="学生评价"
-                width="120"
+                min-width="100"
                 :filters="[{text:'未评价',value:0},]"
                 :filter-method="filterStudent"
                 filter-placement="bottom-end">
@@ -68,7 +68,7 @@
             <el-table-column
                 prop="state"
                 label="选课状态"
-                width="120"
+                min-width="100"
                 :filters="[{text:'未确认',value:2},]"
                 :filter-method="filterState"
                 filter-placement="bottom-end">
@@ -81,7 +81,7 @@
             <el-table-column
                 prop="operate"
                 label="操作"
-                width="165"><!--操作列-->
+                min-width="120"><!--操作列-->
                 <template slot-scope="scope"> 
                     <student-details :student="scope.row"></student-details>                <!--学生详情组件-->
                     <el-button type="text" 
@@ -94,17 +94,23 @@
             </el-table-column>
         </el-table>
         <div class="footer">
-            <el-checkbox @change="toggleSelection(manageTable)" class="select-all">全选</el-checkbox>               <!---->
+            <el-checkbox @change="toggleSelection(resultStudents)" class="select-all">全选</el-checkbox>               <!---->
             <div class="amount">已选{{24}}名</div>
-            <el-button class="footer-button" style="margin-left:2.2%;color:#ff7a7b">删除</el-button>
-            <el-button class="footer-button" style="margin-left:1.2%;color:#707079">批量审核</el-button>
-            <el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">确认选课</el-button>
-            <el-pagination
+            <el-button 
+                class="footer-button" 
+                style="margin-left:2.2%;color:#ff7a7b"
+                @click.native.prevent="deleteResult(studentCourseIds)">删除</el-button>
+            <!-- <el-button class="footer-button" style="margin-left:1.2%;color:#707079">批量审核</el-button> -->
+            <el-button 
+                class="footer-button" 
+                style="margin-left:1.2%;color:#14b25a"
+                @click.native.prevent="confirmAll">确认选课</el-button>
+            <!-- <el-pagination
                 background
                 layout="prev, pager, next"
                 :total="140">
                 :page-size="8"
-            </el-pagination>
+            </el-pagination> -->
         </div>
     </div>
 </template>
@@ -118,11 +124,12 @@ import { delElectResults, changeStuCouState } from '../../../../api/election';
 export default {
     props:['course-id'],
     components:{
-      studentDetails,
-      evaluateStudent
+        studentDetails,
+        evaluateStudent
     },
     data(){
-        return{                              
+        return{         
+            studentCourseIds:'',//学生选课Id                     
         }
     },
     filters:{
@@ -157,17 +164,28 @@ export default {
     },
     methods:{
         ...mapActions('election',['getElectResultList']),
-         toggleSelection(rows) {   /* 全选复选框*/
-        if (rows) {
-          rows.forEach(row => {
-            this.$refs.multipleTable.toggleRowSelection(row);
-          });
-        } else {
-          this.$refs.multipleTable.clearSelection();
-        }
+        /**
+         * @function 监听全选复选框事件，实现全选与全取消功能
+         */
+        toggleSelection(rows) {
+            if (rows) {
+                rows.forEach(row => {
+                    this.$refs.multipleTable.toggleRowSelection(row);
+                });
+            } else {
+                this.$refs.multipleTable.clearSelection();
+            }
         },
+        /**
+         * @function 监听复选框选中或取消事件
+         * @param {选课结果记录} val
+         */
         handleSelectionChange(val) {
-            this.multipleSelection = val;
+            let stuCouIds = [];
+            for(let item of val){
+                stuCouIds.push(item.stuCouId);
+            }
+            this.studentCourseIds = stuCouIds.toString();
         },
         /**@function 过滤教师对学生已评价的记录，找出未评价学生 */
         filterTeacher(value, row) {
@@ -190,10 +208,41 @@ export default {
             changeStuCouState(params)
                 .then(res => {
                     if(res.data.success){
-                        delElectResults({stuCouIds:studentCourseIds}) 
+                        delElectResults({stuCouIds:studentCourseIds})
+                            .then(res => {
+                                if(res.data.success){
+                                    this.updateResultList()
+                                    this.$message.success('删除成功！');
+                                }else{
+                                    this.$message.error(res.data.message);
+                                }
+                            }) 
                     }
                 })
             
+        },
+        /**
+         * @function 监听全部确认事件
+         */
+        confirmAll(){
+            changeStuCouState({
+                    stuCouIds:this.studentCourseIds,
+                    state:3,//选课状态 1预选 2选中(默认) 3确认
+                })
+            .then(res => {
+                if(res.data.success){
+                    this.updateResultList()
+                    this.$message.success('选课确认成功！');
+                }else{
+                    this.$message.error(res.data.message);
+                }
+            })
+        },
+        /**@function 监听选课结果更改事件，与服务器同步信息 */
+        updateResultList(){
+            let url = 'stuCou!query3.action';
+            let params = {selCouId:this.courseId,termId:this.termId};
+            this.getElectResultList({url,params})
         }
         
     },
