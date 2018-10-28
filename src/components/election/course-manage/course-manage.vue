@@ -34,9 +34,10 @@
 </template>
 
 <script>
-    import CourseTable from './course-table.vue' 
+import CourseTable from './course-table.vue' 
 import { exportCourse } from '../../../api/election';
-import { mapState } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
+import { xhrErrHandler } from '../../../utils/util';
 export default {
  components:{
         CourseTable,
@@ -53,31 +54,35 @@ export default {
     computed:{
         ...mapState('election',{
             currentPlanId:state => state.currentPlanId,
+            selectedCourseIds:state => state.selectedCourseIdList,
         })
     },
-    methods:{
-         handleClick(tab, event) {
-        console.log(tab, event);
-      },
-      /**@function 跳转到新增课程页面 */
-      goAddCourse(){
-          this.$router.push('/home/add-course');
-      },
-      /**@function 导出课程 */
-      exportCourses(){
-          exportCourse({xkpId:this.currentPlanId})
-            .then(res => {
-                if (!res.data) {
-                    return
-                }
-                let url = window.URL.createObjectURL(new Blob([res.data]))
-                let link = document.createElement('a')
-                link.style.display = 'none'
-                link.href = url
-                link.setAttribute('download', '待选课程.xls')
-                document.body.appendChild(link)
-                link.click()
-            });
+    methods:{   
+          
+        /**@function 跳转到新增课程页面 */
+        goAddCourse(){
+            this.$router.push('/home/add-course');
+        },
+        /**@function 导出课程 */
+        exportCourses(){
+            exportCourse({
+                    xkpId:this.currentPlanId,
+                    selCouIds:this.selectedCourseIds.toString()})
+                .then(res => {
+                    if (!res.data) {
+                        return
+                    }
+                    let url = window.URL.createObjectURL(new Blob([res.data]))
+                    let link = document.createElement('a')
+                    link.style.display = 'none'
+                    link.href = url
+                    link.setAttribute('download', '待选课程.xls')
+                    document.body.appendChild(link)
+                    link.click()
+                })
+                .catch(err => {
+                    xhrErrHandler(err,this.$router,this.$message)
+                })
       },
     },
     created(){
@@ -142,7 +147,6 @@ export default {
       background: url(../../../assets/search-o.png) no-repeat;
       border-radius: 0 4px 4px 0;
       background-position: 48% 50%;
-
     }
     
    

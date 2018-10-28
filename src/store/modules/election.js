@@ -14,6 +14,7 @@ const state = {
     taskList:[],//学生选课任务列表
     stuCourseStatus:[],//获取学生选课状态
     electResultList :[],//选课结果
+    selectedCourseIdList:[],//被选中课程的Id
     currentPlanId:null,//当前被选中计划Id
     currentTermId:null,//当前被选中计划Id
     willCheckPlan:false,//是否要查看选课计划详情（false(默认不查看),true（查看））
@@ -51,6 +52,9 @@ const mutations = {
     },
     [type.SET_CURRENT_TERM_ID](state,params){
         state.currentTermId = params;
+    },
+    [type.SET_CURRENT_COURSE_IDS](state,params){
+        state.selectedCourseIdList = params;
     }
 }
 

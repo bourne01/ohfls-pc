@@ -5,7 +5,10 @@ export const xhrErrHandler = (err,router,msgbox) => {
         let status = err.response.status;
         if(status === 401){
             msgbox('您还没有登录','权限错误')
-            router.push('/login')
+            setTimeout(() => {
+                router.push('/login')
+            }, 500);
+            
         }else if(status === 404){
             
         }else if(status === 500 || status === 501){

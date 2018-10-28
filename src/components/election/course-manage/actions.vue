@@ -54,59 +54,59 @@ export default {
         /**
          * @function 监听删除课程事件,然后根据Id删掉所选课程
          */
-        deleteCourse:async function(){   
+        deleteCourse(){   
             let courseId = this.currentCourse.selCouId;         
             this.$confirm('确认删除该课程吗?', '提示', {confirmButtonText: '确定',cancelButtonText: '取消',type: 'warning'})
                 .then(() => {
                     /**
                      * 不能删除课程状态是“2开启，3关闭”这2种状态的课程（ 4确认 5完成）
                      */
-                    if(this.currentCourse.couState == 2 || this.currentCourse.couState == 3){
-                        changeCouState({selCouIds:courseId,couState:5})
-                            .then(res => {
-                                if(res.data.success){
-                                    this.removeCourse({selCouIds:courseId})
-                                        .then(res => {
-                                            if(res.success){
+                    /* if(this.currentCourse.couState == 2 || this.currentCourse.couState == 3){ */
+                    changeCouState({selCouIds:courseId,couState:5})
+                        .then(res => {
+                            if(res.data.success){
+                                this.removeCourse({selCouIds:courseId})
+                                    .then(res => {
+                                        if(res.success){
+                                            this.$message({
+                                                    type: 'success',
+                                                    message: res.message
+                                                });
+                                                this.$emit('update-course-list');
+                                        }else{
+                                            if(res.type == 1){
                                                 this.$message({
-                                                        type: 'success',
-                                                        message: res.message
-                                                    });
-                                                    this.$emit('upadte-course-list');
+                                                    type:'error',
+                                                    message:res.message
+                                                })
                                             }else{
-                                                if(res.type == 1){
-                                                    this.$message({
-                                                        type:'error',
-                                                        message:res.message
-                                                    })
-                                                }else{
-                                                    this.$message({
-                                                        type:'error',
-                                                        message:'发生未知错误，请联系管理员！'
-                                                    })
-                                                    console.log(res.message)
-                                                }
-                                            }                        
-                                        })
-                                        .catch(err => {
-                                            xhrErrHandler(err,this.$message,this.$router)
-                                        })
+                                                this.$message({
+                                                    type:'error',
+                                                    message:'发生未知错误，请联系管理员！'
+                                                })
+                                                console.log(res.message)
+                                            }
+                                        }                        
+                                    })
+                                    .catch(err => {
+                                        xhrErrHandler(err,this.$message,this.$router)
+                                    })
+                            }else{
+                                if(res.data.type == 1){
+                                    this.$message({
+                                        type:'error',
+                                        message:res.message
+                                    })
                                 }else{
-                                    if(res.data.type == 1){
-                                        this.$message({
-                                            type:'error',
-                                            message:res.message
-                                        })
-                                    }else{
-                                        this.$message({
-                                            type:'error',
-                                            message:'发生未知错误，请联系管理员！'
-                                        })
-                                        console.log(res.message)
-                                    }
+                                    this.$message({
+                                        type:'error',
+                                        message:'发生未知错误，请联系管理员！'
+                                    })
+                                    console.log(res.message)
                                 }
-                            })
-                    }
+                            }
+                        })
+                    /* } */
                 })
                 .catch(() => {
                     this.$message({

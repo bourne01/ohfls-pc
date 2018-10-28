@@ -88,6 +88,7 @@
 <script>
 import { addElectPlan, editElectPlan } from '../../../api/election.js' 
 import { getSelector } from '../../../api/public.js'
+import { xhrErrHandler } from '../../../utils/util.js'
 export default {
     data() {
         return {
@@ -157,7 +158,7 @@ export default {
                     }
                 })
                 .catch(err => {
-                    console.log(err);
+                    xhrErrHandler(err,this.$router,this.$message)
                 })
             //this.$router.push('/home/election')
         },

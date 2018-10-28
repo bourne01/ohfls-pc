@@ -29,11 +29,11 @@
                         :value="item.id">
                     </el-option>
                 </el-select>
-                <form action="#" class="search-area">
+                <div class="search-area">
                     <input type="text" class="search-id" placeholder="查询学号" v-model="student.NO">
                     <input type="text" placeholder="查询姓名" class="search-name" v-model="student.name">
-                    <button class="search-button" @click="getStudentList"></button>
-                 </form>
+                    <button class="search-button" @click.stop="getStudentList"></button>
+                 </div>
                 <div class="student-table">
                     <el-table
                         ref="multipleTable"
@@ -122,7 +122,6 @@ export default {
                 .then(res => {
                     console.log(res.data);
                     if(res.data.success){
-
                         this.studentList = res.data.dataList;
                     }
                 })

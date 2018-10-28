@@ -33,14 +33,14 @@
                     <i class="el-icon-edit"></i>编辑/修改计划
                 </div>
             </div>
-            <div v-if="tabIndex===1">
-                <course-manage></course-manage>
+            <div>
+                <course-manage v-if="tabIndex===1"></course-manage>
             </div>
-            <div v-if="tabIndex===2">
-                <elective-name-list></elective-name-list>
+            <div >
+                <elective-name-list v-if="tabIndex===2"></elective-name-list>
             </div>
-            <div v-if="tabIndex===3">
-                <elective-status></elective-status>
+            <div >
+                <elective-status v-if="tabIndex===3"></elective-status > 
             </div>
          </div>
     </div>

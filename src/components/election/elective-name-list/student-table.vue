@@ -1,5 +1,8 @@
 <template>
-<div class="student-content">       
+<div class="student-content"
+	v-loading="isLoading"
+	element-loading-text="拼命设置中"
+	background="rgba(0, 0, 0, 0.8)">       
 	<el-table
 		:data="taskList"
 		border
@@ -56,29 +59,34 @@
 			</template>
 		</el-table-column>
 		<el-table-column
-		label="操作">
+			label="操作">
 			<template slot-scope="scope"> 
-				<el-button type="text" size="small" class="edit" @click="openSubCourse=true" >编辑</el-button>    
+				<!-- <el-button type="text" size="small" class="edit" @click="openSubCourse=true" >编辑</el-button>     -->
+				<edit-task :elective-task="scope.row"></edit-task>
 				<el-button type="text" 
-				size="mini"
-				@click.native.prevent="deleteRow(scope.$index,studentList)"
-				>                                                        <!--删除图标的样式，默认是不可编辑的，当选择器被选中时可被编辑 -->
-				<img :src="require('../../../assets/delete-oc.png')" alt=""  >
+					size="small"
+					icon="el-icon-delete"
+					@click.native.prevent="deleteTask(scope.row)"
+					>                                                        <!--删除图标的样式，默认是不可编辑的，当选择器被选中时可被编辑 -->
+					<!-- <img :src="require('../../../assets/delete-oc.png')" alt=""  > -->
 				</el-button>
 				</template>      
 		</el-table-column>
 	</el-table>
 	<div class="footer">
-		<el-checkbox @change="toggleSelection(studentList)" class="select-all">全选</el-checkbox>
+		<el-checkbox @change="toggleSelection(taskList)" class="select-all">全选</el-checkbox>
 		<div class="amount">(当前页共条)</div>
-		<el-button class="footer-button" style="margin-left:2.2%;color:#ff7a7b">删除</el-button>
+		<el-button 
+			class="footer-button" style="margin-left:2.2%;color:#ff7a7b"
+			@click="deleteTask()">批量删除</el-button>
 		<el-button class="footer-button" style="margin-left:1.2%;color:#707079">关闭选课</el-button>
 		<el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">开启选课</el-button>
 		<el-pagination
 			background
 			layout="prev, pager, next"
-			:total="140">
-			:page-size="8"
+			:total="total"
+			:page-size='pageSize'
+			@current-change="onCurrentChange">
 		</el-pagination>    <!--翻页的-->
 	</div>
 </div>
@@ -86,78 +94,160 @@
 
 <script>
 import{mapActions,mapState} from 'vuex'
+import EditTask from './edit-task-pop'
 import TaskState from './elective-state'
+import { xhrErrHandler } from '../../../utils/util';
+import { delElectDuties, editElectDuty } from '../../../api/election';
 export default {
 	components:{
-		TaskState
+		TaskState,
+		EditTask
 	},
-data() {
-	return {
-	
+	data() {
+		return {
+			total:1,//默认一页
+			pageSize:50,//每页放50个任务
+			studentIds:[],//被用户选中的学生选课Id
+			allStuIds:[],//来自接口请求的学生选课记录Id
+			isLoading:false,
+		}
+	},
+	methods:{
+		toggleSelection(rows) {   /* 全选复选框*/
+			if (rows) {
+				rows.forEach(row => {
+				this.$refs.multipleTable.toggleRowSelection(row);
+				});
+			} else {
+				/* this.$refs.multipleTable.clearSelection(); */
+			}
+		},
+		handleSelectionChange(val) {
+			let stuIds = [];
+			for(let item of val)
+				stuIds.push(item.stuId);
+			this.studentIds = stuIds;
+		},
+		/**
+		 * @function 删除学生选课任务，可以是多个学生
+		 */
+		deleteTask(studentTask) {            //删除按钮的弹框，并进行进一步的确认或者取消
+			this.$confirm('确认删除该生选课任务吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(async () => {
+				let params = {};
+				if(typeof studentTask === 'object'){//来自表格操作列中删除按钮，即删除一条记录
+					params = {
+						xkpId:studentTask.xkpId,
+						stuIds:studentTask.stuId,
+					}
+					await editElectDuty({
+						xkpId:studentTask.xkpId,
+						stuIds:studentTask.stuId,
+						TaskState:1
+					})
+				}else if(this.studentIds.length === 0){//来自底部的批量删除按钮
+					this.isLoading = true;									
+					await this.getTasks(0,100000);
+					await editElectDuty({
+						xkpId:this.currentPlanId,
+						stuIds:this.allStuIds.toString(),
+						TaskState:1
+					})	
+					params = {
+						xkpId:this.currentPlanId,
+						stuIds:this.allStuIds.toString()
+					}						
+				}else{
+					params = {
+						xkpId:this.currentPlanId,
+						stuIds:this.studentIds.toString()
+					}
+					await editElectDuty({
+						xkpId:this.currentPlanId,
+						stuIds:this.studentIds.toString(),
+						TaskState:1
+					})
+				}
+				delElectDuties(params)
+					.then(res => {
+						if(res.data.success){
+							this.getTasks();
+							this.$message({
+							type: 'success',
+							message: '删除成功!'
+						});
+						}else{
+							this.$message.error(res.data.message)
+						}
+						this.isLoading = false;
+					})
+					.catch(err => {
+						xhrErrHandler(err,this.$router,this.$message)
+						this.isLoading = false;
+					})
+			}).catch(() => {
+				this.$message({
+				type: 'info',
+				message: '已取消删除'
+				});          
+			});
+		},
+		filterGender(value, row) {       //筛选性别
+			return row.gender === value;
+		},
+		filterStatus(value, row) {       //筛选选课状态
+			return row.electiveStatus === value;
+		},
+		...mapActions('election',['getTaskList']),
+		/**
+		 * @function 获取选课任务列表
+		 */
+		getTasks(start=0,limit=50){
+			let url ='xkTask!query2.action';
+			let params = {
+				xkpId:this.currentPlanId,
+				limit,
+				start
+			};
+			return this.getTaskList({url,params})
+				.then(res => {
+					this.total = res.total;
+					this.allStuIds = [];
+					for(let item of res.dataList)
+						this.allStuIds.push(item.stuId);
+				})
+				.catch(err => {
+					xhrErrHandler(err,this.$router,this.$message)
+				})
+		},
+		/**
+		 * @function 监听点击改变页码事件
+		 * @param {当前页码} val
+		 */
+		onCurrentChange(val){
+			this.getTasks((val-1)*50);
+		}
+	},
+	computed:{
+		...mapState('election',{
+			taskList:state => state.taskList,
+			currentPlanId:state => state.currentPlanId,
+		})
+	},
+	mounted(){
+		this.$root.bus.$on('update-task-list',() => {
+			this.getTasks();
+			console.log('fjalfaljfalj');
+		});		
+		/**获取选课任务列表 */
+		this.getTasks();
+	},
+	destroyed(){
+		this.$root.bus.$off('update-task-list');
 	}
-},
-methods:{
-	toggleSelection(rows) {   /* 全选复选框*/
-	if (rows) {
-		rows.forEach(row => {
-		this.$refs.multipleTable.toggleRowSelection(row);
-		});
-	} else {
-		this.$refs.multipleTable.clearSelection();
-	}
-	},
-	handleSelectionChange(val) {
-	this.multipleSelection = val;
-	},
-		deleteRow(index, rows) {            //删除按钮的弹框，并进行进一步的确认或者取消
-	this.$confirm('确认删除该课程吗?', '提示', {
-		confirmButtonText: '确定',
-		cancelButtonText: '取消',
-		type: 'warning'
-	}).then(() => { 
-		rows.splice(index, 1);
-		this.$message({
-		type: 'success',
-		message: '删除成功!'
-		});
-	}).catch(() => {
-		this.$message({
-		type: 'info',
-		message: '已取消删除'
-		});          
-	});
-	},
-	toggleSelection(rows) {
-	if (rows) {
-		rows.forEach(row => {
-		this.$refs.multipleTable.toggleRowSelection(row);
-		});
-	} else {
-		this.$refs.multipleTable.clearSelection();
-	}
-	},
-	handleSelectionChange(val) {
-	this.multipleSelection = val;
-	},
-	filterGender(value, row) {       //筛选性别
-	return row.gender === value;
-	},
-	filterStatus(value, row) {       //筛选选课状态
-	return row.electiveStatus === value;
-	},
-	...mapActions('election',['getTaskList'])
-},
-computed:{
-	...mapState('election',{
-	taskList:state => state.taskList
-	})
-},
-mounted(){
-	/**获取选课任务列表 */
-	let url ='xkTask!query2.action';
-	let params = {xkpId:44};
-	this.getTaskList({url,params})
-}
 }
 </script>
 <style scoped>
