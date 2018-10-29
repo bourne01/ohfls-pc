@@ -29,7 +29,7 @@
                 <label for="">计划说明</label>
                 <el-input type="textarea" v-model="plan.memo"></el-input>
             </div>
-            <div>
+            <div class="datepicker">
                 <label for="">报名时间<span class="end-time"></span></label>                
                 <el-date-picker
                     v-model="plan.time"
@@ -101,7 +101,7 @@ export default {
         /**@function 提交选课计划*/
         submit(){
             //计划名称、编号与学期，三者缺一则无法提交
-            if(!this.plan.id || !this.plan.name || !this.plan.termId){
+            if(!this.plan.NO || !this.plan.name || !this.plan.termId){
                 this.$message("计划名称、计划编号与学期三者不能为空");
                return;
             }
@@ -274,7 +274,7 @@ export default {
        width:752px;
        /* min-height:88px!important; */
    }  
-    .limit,.ratio,.credit{
+    .limit,.ratio,.credit,.datepicker{
         justify-content:space-between;   
         width:752px;     
     }

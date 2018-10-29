@@ -9,6 +9,7 @@
 		ref="multipleTable"
 		style="width: 100%"
 		tooltip-effect="dark"
+		height="51vh"
 		@selection-change="handleSelectionChange">    <!--学生列表-->
 		<el-table-column
 		type="selection"
@@ -79,8 +80,12 @@
 		<el-button 
 			class="footer-button" style="margin-left:2.2%;color:#ff7a7b"
 			@click="deleteTask()">批量删除</el-button>
-		<el-button class="footer-button" style="margin-left:1.2%;color:#707079">关闭选课</el-button>
-		<el-button class="footer-button" style="margin-left:1.2%;color:#14b25a">开启选课</el-button>
+		<el-button 
+			class="footer-button" style="margin-left:1.2%;color:#707079"
+			@click="doElection('disable')">关闭选课</el-button>
+		<el-button 
+			class="footer-button" style="margin-left:1.2%;color:#14b25a"
+			@click="doElection('enable')">开启选课</el-button>
 		<el-pagination
 			background
 			layout="prev, pager, next"
@@ -127,6 +132,49 @@ export default {
 			for(let item of val)
 				stuIds.push(item.stuId);
 			this.studentIds = stuIds;
+		},
+		/**
+		 * @function 关闭/启用选课任务，可以是多个学生
+		 * @param {操作名称，disable/enable} actionName 
+		 */
+		doElection:async function(actionName="disable"){
+			let taskState = 1;//任务状态 1未开启(默认) 2开启 3关闭 4完成
+			if(actionName === 'enable'){
+				taskState = 2;
+			}
+			let params = {};
+			if(this.studentIds.length === 0){//当不选中任何页面选课记录时，点击底部的批量关闭或开启按钮
+				this.isLoading = true;									
+				await this.getTasks(0,100000);//同步获取所有选课任务记录的学生选课Id
+				params = {
+					xkpId:this.currentPlanId,
+					stuIds:this.allStuIds.toString(),
+					taskState
+				}						
+			}else{//当选中任何页面选课记录时，点击底部的批量关闭或开启按钮
+				params = {
+					xkpId:this.currentPlanId,
+					stuIds:this.studentIds.toString(),
+					taskState
+				}
+			}
+			editElectDuty(params)
+				.then(res => {
+					if(res.data.success){
+						this.getTasks();
+						this.$message({
+						type: 'success',
+						message: '设置成功!'
+					});
+					}else{
+						this.$message.error(res.data.message)
+					}
+					this.isLoading = false;
+				})
+				.catch(err => {
+					xhrErrHandler(err,this.$router,this.$message)
+					this.isLoading = false;
+				})
 		},
 		/**
 		 * @function 删除学生选课任务，可以是多个学生
@@ -231,6 +279,12 @@ export default {
 			this.getTasks((val-1)*50);
 		}
 	},
+	watch:{
+		//监听当前计划Id的变化，则更新课程列表
+		currentPlanId:function(){
+			this.getTasks();
+		}
+	},
 	computed:{
 		...mapState('election',{
 			taskList:state => state.taskList,
@@ -240,7 +294,6 @@ export default {
 	mounted(){
 		this.$root.bus.$on('update-task-list',() => {
 			this.getTasks();
-			console.log('fjalfaljfalj');
 		});		
 		/**获取选课任务列表 */
 		this.getTasks();

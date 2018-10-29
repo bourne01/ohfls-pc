@@ -307,9 +307,7 @@
 			})
 		},
 		mounted(){
-			/* let url = 'selCou!query2.action';
-			let params = {start:0,limit:10,parCouId:-1};
-			this.getCourseTable({url,params}) */
+			
 		}
 
 	}

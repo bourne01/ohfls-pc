@@ -18,8 +18,7 @@ export default {
        TermPlan
    },
     data(){
-        return{
-            termList:['2018上','2018下','2017上'],
+        return{            
         }   
     },
     methods:{
@@ -28,12 +27,6 @@ export default {
             this.$router.push('/home/add-plan');
         },
     },
-    created(){
-
-    },
-    mounted(){
-
-    }
 }
 </script>
 

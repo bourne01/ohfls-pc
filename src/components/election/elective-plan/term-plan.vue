@@ -3,6 +3,8 @@
         <div class="term-plan" 
             :class="{active:idx===actIdx}"
             @click="onClick(idx,plan.xkpId,plan.termId)"
+            @mouseover="hoverIdx=idx"
+            @mouseout="hoverIdx=-1"
             v-for="(plan,idx) in plans" :key="idx" v-if="idx<planNums">
             <div>
                 <span class="term-txt">{{plan.termNm|getYear}}</span>
@@ -16,6 +18,10 @@
                 class="plan-done" 
                 :src="require('../../../assets/completed.png')" alt=""
                 v-if="idx!==0">
+            <el-button 
+                icon="el-icon-close" size="mini" circle
+                v-if="idx===hoverIdx"
+                @click.stop="removePlan(plan)"></el-button>
         </div>
     </div>
     
@@ -23,7 +29,7 @@
 
 <script>
 import { getTerms } from '../../../api/public.js'
-import { getElectPlans } from '../../../api/election.js'
+import { getElectPlans, changePlanState, delElectPlans } from '../../../api/election.js'
 import { xhrErrHandler } from '../../../utils/util.js'
 import { mapMutations } from 'vuex';
 export default {
@@ -33,6 +39,7 @@ export default {
             actIdx:0,//默认最新学期激活
            // plans:[],//选课计划列表
             planNums:0,//屏幕展示学科计划数量，由分辨率而定
+            hoverIdx:0,
         }
     },
     computed:{
@@ -76,44 +83,96 @@ export default {
             //this.$router.push({name:'AddElectivePlan',query:{planId}})
             this['SET_CURRENT_PLAN_ID'](planId);
             this['SET_CURRENT_TERM_ID'](termId);
+        },
+        /**@function 根据浏览器窗口宽度大小，自动调整选课计划显示数量 */
+        setMaxShowItems(){
+            let clientWidth = document.body.clientWidth;        
+            if(clientWidth>1920)
+                this.planNums = 8;
+            else if(clientWidth>=1640)
+                this.planNums = 4;
+            else if(clientWidth > 1400)
+                this.planNums = 3;
+            else if(clientWidth >= 1120)
+                this.planNums = 2;
+            else if(clientWidth >= 1024)
+                this.planNums = 1;        
+        },
+        /**
+         * @function 删除选课计划
+         * @param {选课计划对象} plan
+         */
+        removePlan(plan){
+            this.$confirm('确认删除本选课计划吗?', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+            })
+            .then(async () => {
+                if(plan.state != 4 || plan.state != 1)
+                    await changePlanState({//更改选课计划状态为完成
+                        xkpId:plan.xkpId,
+                        xkpState:4//选课计划状态 1未开启 2开启(默认) 3关闭 4完成
+                    })
+                delElectPlans({xkpIds:plan.xkpId})
+                    .then(res => {
+                        if(res.data.success){
+                            this.$message.success(res.data.message);
+                            this.getPlanList();
+                        }else{
+                            if(res.data.type === 1)
+                                this.$message.error(res.data.message)
+                            else{
+                                this.$message.error('发生未知错误，请联系管理员！');
+                                console.log(res.data.message);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        xhrErrHandler(err,this.$router,this.$message)
+                    })
+
+            })
+            .catch(() => {
+                this.$message.info('已取消删除')
+            })
+        },
+        /**@function 获取选课计划列表 */
+        getPlanList(){
+            this.$store.dispatch('election/getElectPlanList',{orderFd:'@planName'})
+                .then(res => {
+                    if(res.success){
+                        //this.plans = res.dataList.reverse();
+                        if(this.plans.length>0){//当前计划列表非空时      
+                            this['SET_CURRENT_PLAN_ID'](this.plans[0].xkpId);
+                            this['SET_CURRENT_TERM_ID'](this.plans[0].termId);
+                        }
+                    }else{
+                        this.$message(res.message)
+                    }
+                })
+                .catch(err => {
+                    xhrErrHandler(err,this.$router,this.$message);
+                })
         }
     },
     mounted(){
-        /**获取选课计划列表 */
-        this.$store.dispatch('election/getElectPlanList',{orderFd:'@planName'})
-        //getElectPlans()
-            .then(res => {
-                if(res.success){
-                    //this.plans = res.dataList.reverse();
-                    if(this.plans.length>0){//当前计划列表非空时      
-                        this['SET_CURRENT_PLAN_ID'](this.plans[0].xkpId);
-                        this['SET_CURRENT_TERM_ID'](this.plans[0].termId);
-                    }
-                }else{
-                    this.$message(res.message)
-                }
-            })
-            .catch(err => {
-                xhrErrHandler(err,this.$router,this.$message);
-            })
-        
-        
-
-        /**根据屏幕分辨率判定界面显示及格选课计划 */
-        let screenWidth = window.screen.width;        
-        if(screenWidth>1920)
-            this.planNums = 8;
-        else if(screenWidth>=1400)
-            this.planNums = 4;
-        else if(screenWidth > 1366)
-            this.planNums = 3;
-        else if(screenWidth >= 1280)
-            this.planNums = 2;
-        else if(screenWidth >= 1024)
-            this.planNums = 1;        
+        this.getPlanList();
+        window.onresize = this.setMaxShowItems;//监听浏览窗口大小变化，自动调整选课计划显示数量   
+        this.setMaxShowItems();//默认情况下，显示数量        
     }
 }
 </script>
+
+<style>
+    .term-plan .el-button--mini.is-circle{
+        padding:2px!important;
+        color:#ff7a7b;
+        position:absolute;
+        right:-6px;
+        top:-6px;
+    }
+</style>
 
 
 <style scoped>

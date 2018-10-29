@@ -8,7 +8,7 @@
         <el-dialog
             title="添加学生"
             :visible.sync="addStudent"
-            width="26%"
+            width="478px"
             top="12vh"
             ref="multipleTable"
             :modal="false"
@@ -41,7 +41,7 @@
                         tooltip-effect="dark"
                         style="width: 100%"
                         @selection-change="handleSelectionChange"
-                        height="460px"
+                        height="420px"
                         >
                         <el-table-column
                         type="selection"
@@ -238,7 +238,7 @@ export default {
 
 <style>
  .add-student .el-dialog  {    /*设置弹框整体的样式*/
-   height:700px;
+   height:660px;
    
   
  }                                                               

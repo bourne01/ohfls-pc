@@ -8,11 +8,10 @@
             width="80%"
             top="10vh"
             >                                                                                   <!--管理名单弹窗-->
-            <el-dialog
-                title="管理名单"
+            <!-- <el-dialog               
             >
-            <add-elective-student></add-elective-student>
-            </el-dialog>
+                <add-elective-student></add-elective-student>
+            </el-dialog> -->
             <div class="manage-header">                                          <!--管理名单的头部部分-->
                 <add-elective-student></add-elective-student>        <!--添加学生组件-->
                     <form action="#" class="search-area">
