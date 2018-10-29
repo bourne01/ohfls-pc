@@ -39,7 +39,7 @@ export default {
             actIdx:0,//默认最新学期激活
            // plans:[],//选课计划列表
             planNums:0,//屏幕展示学科计划数量，由分辨率而定
-            hoverIdx:0,
+            hoverIdx:-1,
         }
     },
     computed:{
