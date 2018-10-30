@@ -613,7 +613,7 @@ export default {
 
         /**@function 文件上传成功后 */
         onSuccess(res,file,fileList){
-            
+            this.checkInputValue();
             this.imageUrl = res.url;
         },
     },

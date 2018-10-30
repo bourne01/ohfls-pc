@@ -1,17 +1,23 @@
 <template>
     <div>
         <div class="class-toolbar">
-            <el-button icon="el-icon-plus" size="small" @click="isGradePop=true">设置年级</el-button>
-            <el-button icon="el-icon-plus" size="small">新增班级</el-button>
-            <el-select>
+            <div>
+                <el-button icon="el-icon-plus" size="small" @click="isGradePop=true">设置年级</el-button>
+                <el-button icon="el-icon-plus" size="small" @click="isClassPop=true">新增班级</el-button>
+            </div>
+            
+            <!-- <el-select>
 
-            </el-select>
+            </el-select> -->
             <el-input placeholder="请输入班级">
                 <el-button slot="append" icon="el-icon-search"></el-button>
             </el-input>
         </div>
         <grade-popup :is-pop="isGradePop" @close-pop="isGradePop=false"></grade-popup>
-        <class-popup :is-pop="isClassPop" @close-pop="isClassPop=false"></class-popup>
+        <class-popup 
+            :is-pop="isClassPop" 
+            @close-pop="isClassPop=false"
+            :class-id="classId"></class-popup>
     </div>
     
 </template>
@@ -28,7 +34,17 @@ export default {
         return{
             isGradePop:false,
             isClassPop:false,
+            classId:'',
         }
+    },
+    mounted(){
+        this.$root.bus.$on('class-id',(classId) => {
+            this.classId = classId;
+            this.isClassPop = true;
+        });
+    },
+    destroyed(){
+        this.$root.bus.$off('class-id');
     }
     
 }
@@ -67,6 +83,7 @@ export default {
         background-color:#409EFF;
         color:#fff;
         font-size:14px;
+        /* margin-right:10px; */
     }
     .el-input-group,.el-select{
         width:160px;

@@ -25,9 +25,7 @@
 </template>
 
 <script>
-import AddClassPopup from  './add-class-popup'  /* 这是新增班级*/ 
 import ClassTable from './class-table'   /* 这是教师表格*/ 
-import AddStudentPopup from './add-student-popup'  /* 这是新增学生*/ 
 import ClassStudentTable from './class-student-table'   /* 这是学生表格*/ 
 import importInBatch from './import-in-batch'  /* 这是批量导入*/ 
 import DownloadTemplate from './download-template'  /* 这是下载模板*/ 
@@ -36,9 +34,7 @@ import ClassToolbar from './class-toolbar'
 import StudentToolbar from './student-toolbar'
 export default {
     components:{
-        AddClassPopup, 
         ClassTable,
-        AddStudentPopup,
         ClassStudentTable,
         importInBatch,
         DownloadTemplate,

@@ -29,9 +29,9 @@
             label="操作"
             max-width="180">
             <template slot-scope="scope">   <!--这是操作区域功能-->
-                <el-button type="text" >编辑</el-button>
+                <el-button type="text" @click="onEditClick(scope.row.claId)">编辑</el-button>
                 <el-button
-                @click.native.prevent="deleteRow(scope.$index, tableData)"
+                @click.native.prevent="deleteClass(scope.row.claId)"
                 type="text"
                 size="small"
                 icon="el-icon-delete">                
@@ -41,12 +41,10 @@
             </el-table>
             <div class="block">    <!--这是翻页功能-->
                 <el-pagination
-                    @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
-                    :current-page.sync="currentPage1"
-                    :page-size="10"
+                    :page-size="pageSize"
                     layout="total, prev, pager, next"
-                    :total="100"
+                    :total="total"
                     style="margin-top:20px;">
                 </el-pagination>
         </div> 
@@ -54,24 +52,62 @@
 </template>
 <script>
 import {mapActions,mapState} from 'vuex'
+import { editClass, delClasses } from '../../api/student';
+import { xhrErrHandler } from '../../utils/util';
   export default {
-    methods: {
-      deleteRow(index, rows) {      /*删除方法*/
-        rows.splice(index, 1);
-      }
-    },
     data() {
       return {
-        currentPage1:1,
+        pageSize:20,
+        total:1,
       
       }
     },
     methods:{
-        handleSizeChange(val) {
-            console.log(`每页 ${val} 条`);
+        /**
+         * @function 监听点击编辑按钮事件，然后跳转到编辑弹窗
+         * @param {班级Id} classId
+         */
+        onEditClick(classId){
+            this.$root.bus.$emit('class-id',classId);
+        },
+        /**
+         * @function 监听删除班级事件
+         * @param {班级Id} classId
+         */
+        deleteClass(classId){
+            this.$confirm('确认删除该课程吗?', '提示', 
+                {confirmButtonText: '确定',cancelButtonText: '取消',type: 'warning'})
+                .then(async () => {
+                    await editClass({claId:classId,claState:4})
+                            .catch(err => {
+                                xhrErrHandler(err,this.$router,this.$message)
+                            })
+                    delClasses({claIds:classId})
+                        .then((res) => {
+                            if(res.data.success){
+                                this.$message.success(res.data.message);
+                                this.getClassTable({})
+                            }else if(res.data.type === 1){
+                                this.$message.error(res.data.message);
+                            }else{
+                                console.log(res.data.message);
+                                this.$message.error('发生未知类型错误，请联系管理员')
+                            }
+                        })
+                        .catch(err => {
+                            xhrErrHandler(err,this.$router,this.$message)
+                        })
+                })
+                .catch(() => {
+                    this.$message.info('已取消删除！')
+                })
+            
         },
         handleCurrentChange(val) {
-            console.log(`当前页: ${val}`);
+            this.getClassTable({
+                start:(val-1)*this.pageSize,
+                limit:this.pageSize
+            })
         },
         objectSpanMethod({ row, column, rowIndex, columnIndex }){
             if (columnIndex ===0){   //判断条件可以设置成你想合并的列的起始位置
@@ -97,8 +133,13 @@ import {mapActions,mapState} from 'vuex'
     },
     mounted(){
         /**获取班级列表 */
-        let params ={start:0};
+        let params ={start:0,limit:this.pageSize};
         this.getClassTable(params)
+            .then(res => {
+                if(res.success){
+                    this.total = res.total;
+                }
+            })
     }
         
 }
